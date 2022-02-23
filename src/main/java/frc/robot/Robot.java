@@ -62,6 +62,7 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Joystick;
 
+
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.RemoteSensorSource;
 import com.ctre.phoenix.motorcontrol.StatusFrame;
@@ -77,7 +78,7 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 public class Robot extends TimedRobot {
 	/** Hardware */
 	WPI_TalonFX _leftMaster = new WPI_TalonFX(5, "rio");
-	WPI_TalonFX _rightMaster = new WPI_TalonFX(10, "rio");
+	WPI_TalonFX _rightMaster = new WPI_TalonFX(9, "rio");
 	Joystick _gamepad = new Joystick(0);
 	
 	/** Latched values to detect on-press events for buttons */
