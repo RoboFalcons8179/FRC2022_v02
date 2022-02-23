@@ -6,7 +6,18 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.PowerDistribution;
+
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
+
+
 import edu.wpi.first.wpilibj.CAN;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
+
 
 
 // import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -31,11 +42,36 @@ public class Robot extends TimedRobot {
   private static PowerDistribution examplePD = new PowerDistribution();
 
 
+  // DRIVE MOTORS
+  private static WPI_TalonSRX rightDrive = new WPI_TalonSRX(1);
+  private static WPI_TalonSRX leftDrive = new WPI_TalonSRX(3);
+ 
+  private static WPI_VictorSPX rightFollow = new WPI_VictorSPX(2);
+  private static WPI_VictorSPX leftFollow = new WPI_VictorSPX(4);
+
+
+
+	private static Joystick xbox_0 = new Joystick(0);
+
+    DifferentialDrive m_drive = new DifferentialDrive(leftDrive, rightDrive);
+
   @Override
   public void robotInit() {
-    // m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
-    // m_chooser.addOption("My Auto", kCustomAuto);
-    // SmartDashboard.putData("Auto choices", m_chooser);
+
+
+	// Set motor phases and inversion
+
+	rightDrive.setInverted(true);
+	rightFollow.setInverted(true);
+	rightDrive.setSensorPhase(false);
+
+	leftDrive.setInverted(false);
+	leftFollow.setInverted(false);
+	leftDrive.setSensorPhase(true);
+
+
+
+
 
 
     
@@ -91,7 +127,21 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+
+	double speed = xbox_0.getRawAxis(1) * 1 * -1;
+	double rot = xbox_0.getRawAxis(4) * .6;
+
+
+	m_drive.arcadeDrive(speed, rot);
+
+	leftFollow.follow(leftDrive);
+	rightFollow.follow(rightDrive);
+
+	System.out.println(rightDrive.getSelectedSensorVelocity());
+	System.out.println(leftDrive.getSelectedSensorVelocity());
+
+  }
 
   /** This function is called once when the robot is disabled. */
   @Override
