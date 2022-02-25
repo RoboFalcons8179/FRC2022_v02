@@ -79,6 +79,9 @@ public class Robot extends TimedRobot {
 	/** Hardware */
 	WPI_TalonFX _leftMaster = new WPI_TalonFX(5, "rio");
 	WPI_TalonFX _rightMaster = new WPI_TalonFX(9, "rio");
+
+	WPI_TalonFX _leftFollow = new WPI_TalonFX(2, "rio");
+	WPI_TalonFX _rightFollow = new WPI_TalonFX(6, "rio");
 	Joystick _gamepad = new Joystick(0);
 	
 	/** Latched values to detect on-press events for buttons */
@@ -190,6 +193,8 @@ public class Robot extends TimedRobot {
 		/* APPLY the config settings */
 		_leftMaster.configAllSettings(_leftConfig);
 		_rightMaster.configAllSettings(_rightConfig);
+
+		_leftFollow.configAllSettings(_leftConfig);
 		
 		/* Set status frame periods to ensure we don't have stale data */
 		_rightMaster.setStatusFramePeriod(StatusFrame.Status_12_Feedback1, 20, Constants.kTimeoutMs);
@@ -248,6 +253,9 @@ public class Robot extends TimedRobot {
 			/* Configured for Velocity Closed Loop on Integrated Sensors' Sum and Auxiliary PID on Integrated Sensors' Difference */
 			_rightMaster.set(TalonFXControlMode.Velocity, target_unitsPer100ms, DemandType.AuxPID, target_turn);
 			_leftMaster.follow(_rightMaster, FollowerType.AuxOutput1);
+
+			_rightFollow.follow(_rightMaster, FollowerType.PercentOutput);
+			_leftFollow.follow(_leftMaster, FollowerType.PercentOutput);
 
       System.out.println(_rightMaster.getSelectedSensorVelocity());
       System.out.println(_leftMaster.getSelectedSensorVelocity());
