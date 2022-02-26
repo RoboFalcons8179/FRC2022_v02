@@ -7,16 +7,12 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.PowerDistribution;
 
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
-
-import edu.wpi.first.wpilibj.CAN;
+import edu.wpi.first.cscore.VideoSink;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
+
 
 
 
@@ -39,83 +35,61 @@ public class Robot extends TimedRobot {
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
    */
-  private static PowerDistribution examplePD = new PowerDistribution();
+ 	private static PowerDistribution examplePD = new PowerDistribution();
+
+	// SAFETY
+
+	private static final double MAX_SPEED = 500;
+
+	// DRIVE MOTORS
+	private static WPI_TalonSRX rightDrive = new WPI_TalonSRX(1);
+	private static WPI_TalonSRX leftDrive = new WPI_TalonSRX(3);
+	
+	private static WPI_VictorSPX rightFollow = new WPI_VictorSPX(2);
+	private static WPI_VictorSPX leftFollow = new WPI_VictorSPX(4);
 
 
-  // DRIVE MOTORS
-  private static WPI_TalonSRX rightDrive = new WPI_TalonSRX(1);
-  private static WPI_TalonSRX leftDrive = new WPI_TalonSRX(3);
- 
-  private static WPI_VictorSPX rightFollow = new WPI_VictorSPX(2);
-  private static WPI_VictorSPX leftFollow = new WPI_VictorSPX(4);
-
-
-
+	// JOYSTICKS
 	private static Joystick xbox_0 = new Joystick(0);
 
-    DifferentialDrive m_drive = new DifferentialDrive(leftDrive, rightDrive);
+	// MOTION SYSTEMS
+	private static Velocity vroom = new Velocity(leftDrive, rightDrive, leftFollow, rightFollow, MAX_SPEED);
 
-  @Override
+
+	@Override
   public void robotInit() {
 
 
-	// Set motor phases and inversion
+	////// Set drive motor phases and inversion //////////
 
-	rightDrive.setInverted(true);
-	rightFollow.setInverted(true);
-	rightDrive.setSensorPhase(false);
+	vroom._rightInvert = true;
+	vroom._leftInvert = false;
 
-	leftDrive.setInverted(false);
-	leftFollow.setInverted(false);
-	leftDrive.setSensorPhase(true);
+		//does leftDriveInvert == leftFollowInvert? ect.
+	vroom._rightFollowSame = true;
+	vroom._leftFollowSame = true;
 
-
-
-
-
-
+	vroom.rightPhase = false;
+	vroom.leftPhase = false;
     
   }
 
-  /**
-   * This function is called every robot packet, no matter the mode. Use this for items like
-   * diagnostics that you want ran during disabled, autonomous, teleoperated and test.
-   *
-   * <p>This runs after the mode specific periodic functions, but before LiveWindow and
-   * SmartDashboard integrated updating.
-   */
+
   @Override
   public void robotPeriodic() {}
 
-  /**
-   * This autonomous (along with the chooser code above) shows how to select between different
-   * autonomous modes using the dashboard. The sendable chooser code works with the Java
-   * SmartDashboard. If you prefer the LabVIEW Dashboard, remove all of the chooser code and
-   * uncomment the getString line to get the auto name from the text box below the Gyro
-   *
-   * <p>You can add additional auto modes by adding additional comparisons to the switch structure
-   * below with additional strings. If using the SendableChooser make sure to add them to the
-   * chooser code above as well.
-   */
+
   @Override
   public void autonomousInit() {
-    // m_autoSelected = m_chooser.getSelected();
-    // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
-    // System.out.println("Auto selected: " + m_autoSelected);
+
+
   }
 
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-    // switch (m_autoSelected) {
-    //   case kCustomAuto:
-    //     // Put custom auto code here
-    //     break;
-    //   case kDefaultAuto:
-    //   default:
-    //     // Put default auto code here
-    //     break;
-    // }
+
+
   }
 
   /** This function is called once when teleop is enabled. */
@@ -123,28 +97,32 @@ public class Robot extends TimedRobot {
   public void teleopInit() {
 
     System.out.println(examplePD.getTemperature());
+
+	vroom.vel_initalize();
+
+
+
   }
 
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
 
-	double speed = xbox_0.getRawAxis(1) * 1 * -1;
-	double rot = xbox_0.getRawAxis(4) * .6;
+	double speed = deadband(xbox_0.getRawAxis(1) * -1* MAX_SPEED);
+	double rot = deadband(xbox_0.getRawAxis(4) * .6);
 
+	vroom.velPeriodic(speed, rot, true);
 
-	m_drive.arcadeDrive(speed, rot);
+	System.out.println("-------------");
+	System.out.println(rightDrive.getSelectedSensorVelocity() + leftDrive.getSelectedSensorVelocity());
 
-	leftFollow.follow(leftDrive);
-	rightFollow.follow(rightDrive);
-	leftDrive.follow(rightDrive);
-
-	System.out.println(rightDrive.getSelectedSensorVelocity());
-	System.out.println(leftDrive.getSelectedSensorVelocity());
 
   }
 
-  /** This function is called once when the robot is disabled. */
+
+
+
+/** This function is called once when the robot is disabled. */
   @Override
   public void disabledInit() {}
 
@@ -159,4 +137,11 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during test mode. */
   @Override
   public void testPeriodic() {}
+
+  private double deadband(double d) {
+	if (-0.20 < d && d < 0.20)
+		return 0;
+	else
+		return d;
+}
 }
