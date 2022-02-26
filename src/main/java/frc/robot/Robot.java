@@ -137,6 +137,7 @@ public class Robot extends TimedRobot {
 
 	leftFollow.follow(leftDrive);
 	rightFollow.follow(rightDrive);
+	leftDrive.follow(rightDrive);
 
 	System.out.println(rightDrive.getSelectedSensorVelocity());
 	System.out.println(leftDrive.getSelectedSensorVelocity());
