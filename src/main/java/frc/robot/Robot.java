@@ -7,17 +7,17 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.PowerDistribution;
 
+import java.util.Map;
+
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
 import edu.wpi.first.cscore.VideoSink;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.Joystick;
 
-
-
-
-// import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-// import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.shuffleboard.*;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -26,10 +26,6 @@ import edu.wpi.first.wpilibj.Joystick;
  * project.
  */
 public class Robot extends TimedRobot {
-  // private static final String kDefaultAuto = "Default";
-  // private static final String kCustomAuto = "My Auto";
-  // private String m_autoSelected;
-  // private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -55,28 +51,39 @@ public class Robot extends TimedRobot {
 	// MOTION SYSTEMS
 	private static Velocity vroom = new Velocity(leftDrive, rightDrive, leftFollow, rightFollow, MAX_SPEED);
 
+	// SMART DASHBOARD
+	private ShuffleboardTab data = Shuffleboard.getTab("DATA");
+	private NetworkTableEntry setSpeedNetwork = data.add("SET SPEED",0).getEntry();
+	private NetworkTableEntry setTurnNetwork = data.add("SET TURN",0).getEntry();
 
 	@Override
-  public void robotInit() {
-
-
+  	public void robotInit() {
 	////// Set drive motor phases and inversion //////////
 
 	vroom._rightInvert = true;
 	vroom._leftInvert = false;
 
-		//does leftDriveInvert == leftFollowInvert? ect.
+	//does leftDriveInvert == leftFollowInvert? ect.
 	vroom._rightFollowSame = true;
 	vroom._leftFollowSame = true;
 
 	vroom.rightPhase = false;
 	vroom.leftPhase = false;
-    
+
+	// Shuffleboard
+
+
   }
 
 
   @Override
-  public void robotPeriodic() {}
+  public void robotPeriodic() {
+
+	updateSB_Periodic();
+
+
+
+  }
 
 
   @Override
@@ -96,25 +103,30 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
 
-    System.out.println(examplePD.getTemperature());
-
 	vroom.vel_initalize();
 
 
 
   }
+// Global variables
+double speed;
+double rot;
+
 
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
 
-	double speed = deadband(xbox_0.getRawAxis(1) * -1* MAX_SPEED);
-	double rot = deadband(xbox_0.getRawAxis(4) * .6);
+
+	// speed = deadband(xbox_0.getRawAxis(1) * -1* MAX_SPEED);
+	// rot = deadband(xbox_0.getRawAxis(4) * .6);
+
+	speed = setSpeedNetwork.getDouble(1.0);
+	rot = setTurnNetwork.getDouble(1.0);
+
 
 	vroom.velPeriodic(speed, rot, true);
 
-	System.out.println("-------------");
-	System.out.println(rightDrive.getSelectedSensorVelocity() + leftDrive.getSelectedSensorVelocity());
 
 
   }
@@ -143,5 +155,19 @@ public class Robot extends TimedRobot {
 		return 0;
 	else
 		return d;
-}
+	}
+
+	private void updateSB_Periodic() {
+		SmartDashboard.putNumber("Forward Speed", speed);
+		SmartDashboard.putNumber("Turn Command", rot);
+		SmartDashboard.putNumber("Velocity Left", leftDrive.getSelectedSensorVelocity(1));
+		SmartDashboard.putNumber("Velocity Right", rightDrive.getSelectedSensorVelocity(0));
+		SmartDashboard.putNumber("Current Left", leftDrive.getStatorCurrent());
+		SmartDashboard.putNumber("Current Right", rightDrive.getStatorCurrent());
+	
+		SmartDashboard.putNumber("Drive Speed Error", leftDrive.getSelectedSensorVelocity(1)+rightDrive.getSelectedSensorVelocity(0));
+
+		// speed = SmartDashboard.getNumber("speed network command", 0);
+		// rot = SmartDashboard.getNumber("turn network command", 0);
+	}
 }

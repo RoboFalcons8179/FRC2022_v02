@@ -62,10 +62,10 @@ public class Velocity {
 
 		
 		/* Set Neutral Mode */
-		_leftMaster.setNeutralMode(NeutralMode.Brake);
-		_rightMaster.setNeutralMode(NeutralMode.Brake);
-        _leftFollow.setNeutralMode(NeutralMode.Brake);
-        _rightFollow.setNeutralMode(NeutralMode.Brake);
+		_leftMaster.setNeutralMode(NeutralMode.Coast);
+		_rightMaster.setNeutralMode(NeutralMode.Coast);
+        _leftFollow.setNeutralMode(NeutralMode.Coast);
+        _rightFollow.setNeutralMode(NeutralMode.Coast);
 
 		/* Configure output Inversions */
 		_leftMaster.setInverted(_leftInvert);
@@ -114,6 +114,7 @@ public class Velocity {
 		_rightConfig.slot2.integralZone = Constants.kGains_Velocit.kIzone;
 		_rightConfig.slot2.closedLoopPeakOutput = Constants.kGains_Velocit.kPeakOutput;
 		_rightConfig.slot2.maxIntegralAccumulator = 12000;
+		_rightConfig.slot2.allowableClosedloopError = 25;
 
 		/* FPID Gains for turn servo */
 		/* FPID for Distance */
