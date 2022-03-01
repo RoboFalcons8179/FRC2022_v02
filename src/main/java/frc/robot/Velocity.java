@@ -46,7 +46,7 @@ public class Velocity {
 
     public double MAXSPEED = 500;
 	public double forwardScale = 1;
-	public double turnScale = 0.6;
+	public double turnScale = 1;
 
 
     public Velocity( 
@@ -201,23 +201,22 @@ public class Velocity {
 
     public void velPeriodic(double speed, double turn, boolean vel) {
 
-        double target_sensorUnitSpeed = speed * MAXSPEED * 2 * forwardScale;
+        double target_sensorUnitSpeed = speed * MAXSPEED * forwardScale;
 		double rot = turn * MAXSPEED * turnScale;
 
 
 
-		double left_set = (target_sensorUnitSpeed + rot) / 2;
+		double left_set = target_sensorUnitSpeed;
+		double right_set = target_sensorUnitSpeed;
 
 
 		// This VEL lets you go to a simple open loop output if vel is false. Used if weird
 		// things happen with the control loop round walls.
 
         if (vel) {
-            _rightMaster.set(ControlMode.Velocity, target_sensorUnitSpeed); //, DemandType.AuxPID, turn
-            _leftMaster.set(ControlMode.Velocity, target_sensorUnitSpeed);
+            _rightMaster.set(ControlMode.Velocity, right_set); //, DemandType.AuxPID, turn
+            _leftMaster.set(ControlMode.Velocity, left_set);
 
-            _rightFollow.follow(_rightMaster, FollowerType.PercentOutput);
-            _leftFollow.follow(_leftMaster, FollowerType.PercentOutput);
         } else {
 			
 			// backup.arcadeDrive(speed/maxSpeed, turn);

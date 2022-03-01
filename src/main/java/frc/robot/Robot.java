@@ -119,7 +119,7 @@ double fin_set;
 
 
 	speed = deadband(xbox_0.getRawAxis(1) * -1);
-	rot = deadband(xbox_0.getRawAxis(4) * .6);
+	rot = deadband(xbox_0.getRawAxis(4));
 
 	// speed = setSpeedNetwork.getDouble(1.0);
 	// rot = setTurnNetwork.getDouble(1.0);
