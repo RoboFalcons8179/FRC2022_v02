@@ -49,8 +49,8 @@ public class Constants {
      * 
 	 * 	                                    			  kP   kI   kD   kF               Iz    PeakOut */
 	public final static Gains kGains_Distanc = new Gains( 0.8, 0.008,  10, 0.8525,            100,  0.50 );
-	public final static Gains kGains_Turning = new Gains( 0.5, 0.0,  0.0, 1023.0/2,            200,  1.00 );
-	public final static Gains kGains_Velocit = new Gains( 0.8, 0.008, 10, .8525,  100,  1.00);
+	public final static Gains kGains_Turning = new Gains( 1.0, 0.0,  0.0, 0,            200,  1.00 );
+	public final static Gains kGains_Velocit = new Gains( 0.8, 0.008, 20, .8525,  100,  1.00);
 	public final static Gains kGains_MotProf = new Gains( 1.0, 0.0,  0.0, 1023.0/6800.0,  400,  1.00 );
 	
 	/** ---- Flat constants, you should not need to change these ---- */

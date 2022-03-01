@@ -35,15 +35,18 @@ public class Velocity {
 	public boolean _rightInvert = true;
 
 	public boolean leftPhase = true;
-	public boolean rightPhase = true;
+	public boolean rightPhase = false;
 
-    // These will not change if the direction changes. This is for
+    // These will not change if the direction changes. This is saying
+	// that the talon-victor combo goes in the same direction
     public boolean _leftFollowSame = true;
     public boolean _rightFollowSame = true;
 
 
 
-    public double maxSpeed = 500;
+    public double MAXSPEED = 500;
+	public double forwardScale = 1;
+	public double turnScale = 0.6;
 
 
     public Velocity( 
@@ -51,7 +54,7 @@ public class Velocity {
         WPI_VictorSPX _leftFollowIn, WPI_VictorSPX _rightFollowIn,
 		double maxSpeedin) {
         // left master, right master, left follow, right follow, max Speed
-        maxSpeed = maxSpeedin;
+        MAXSPEED = maxSpeedin;
 
         // Bring in Motors
         _leftMaster = _leftMasterIn;
@@ -71,6 +74,9 @@ public class Velocity {
 		_leftMaster.setInverted(_leftInvert);
 		_rightMaster.setInverted(_rightInvert);
 
+		_leftMaster.setSensorPhase(leftPhase);
+		_rightMaster.setSensorPhase(rightPhase);
+
 
         // Look up the Ternary operator. If the polarity of the follow motor is the 
         // same as the drive motor, it will set it to the drive motor inversion. 
@@ -85,13 +91,14 @@ public class Velocity {
 		 * you have to call toFeedbackType. This is a workaround until a product-specific
 		 * FeedbackDevice is implemented for configSensorTerm
 		 */
-        _leftConfig.primaryPID.selectedFeedbackSensor = TalonSRXFeedbackDevice.None.toFeedbackDevice();
+        _leftConfig.primaryPID.selectedFeedbackSensor = TalonSRXFeedbackDevice.QuadEncoder.toFeedbackDevice();
+		_rightConfig.primaryPID.selectedFeedbackSensor = TalonSRXFeedbackDevice.QuadEncoder.toFeedbackDevice();
 
 		/* Configure the Remote (Left) Talon's selected sensor as a remote sensor for the right Talon */
-		_rightConfig.remoteFilter1.remoteSensorDeviceID = _leftMaster.getDeviceID(); //Device ID of Remote Source
-		_rightConfig.remoteFilter1.remoteSensorSource = RemoteSensorSource.TalonSRX_SelectedSensor; //Remote Source Type
+		// _rightConfig.remoteFilter1.remoteSensorDeviceID = _leftMaster.getDeviceID(); //Device ID of Remote Source
+		// _rightConfig.remoteFilter1.remoteSensorSource = RemoteSensorSource.TalonSRX_SelectedSensor; //Remote Source Type
 
-		setRobotTurnConfigs(_rightInvert, _rightConfig);
+		// setRobotTurnConfigs(_rightInvert, _rightConfig);
 
         /* Config the neutral deadband. */
 		_leftConfig.neutralDeadband = Constants.kNeutralDeadband;
@@ -114,7 +121,17 @@ public class Velocity {
 		_rightConfig.slot2.integralZone = Constants.kGains_Velocit.kIzone;
 		_rightConfig.slot2.closedLoopPeakOutput = Constants.kGains_Velocit.kPeakOutput;
 		_rightConfig.slot2.maxIntegralAccumulator = 12000;
-		_rightConfig.slot2.allowableClosedloopError = 25;
+		_rightConfig.slot2.allowableClosedloopError = 0;
+
+		/* FPID for Distance */
+		_leftConfig.slot2.kF = Constants.kGains_Velocit.kF;
+		_leftConfig.slot2.kP = Constants.kGains_Velocit.kP;
+		_leftConfig.slot2.kI = Constants.kGains_Velocit.kI;
+		_leftConfig.slot2.kD = Constants.kGains_Velocit.kD;
+		_leftConfig.slot2.integralZone = Constants.kGains_Velocit.kIzone;
+		_leftConfig.slot2.closedLoopPeakOutput = Constants.kGains_Velocit.kPeakOutput;
+		_leftConfig.slot2.maxIntegralAccumulator = 12000;
+		_leftConfig.slot2.allowableClosedloopError = 0;
 
 		/* FPID Gains for turn servo */
 		/* FPID for Distance */
@@ -137,6 +154,10 @@ public class Velocity {
 		_rightConfig.slot1.closedLoopPeriod = closedLoopTimeMs;
 		_rightConfig.slot2.closedLoopPeriod = closedLoopTimeMs;
 		_rightConfig.slot3.closedLoopPeriod = closedLoopTimeMs;
+		_leftConfig.slot0.closedLoopPeriod = closedLoopTimeMs;
+		_leftConfig.slot1.closedLoopPeriod = closedLoopTimeMs;
+		_leftConfig.slot2.closedLoopPeriod = closedLoopTimeMs;
+		_leftConfig.slot3.closedLoopPeriod = closedLoopTimeMs;
 		
 		/* APPLY the config settings */
 		_leftMaster.configAllSettings(_leftConfig);
@@ -147,14 +168,18 @@ public class Velocity {
 		_rightMaster.setStatusFramePeriod(StatusFrame.Status_12_Feedback1, 20, Constants.kTimeoutMs);
 		_rightMaster.setStatusFramePeriod(StatusFrame.Status_13_Base_PIDF0, 20, Constants.kTimeoutMs);
 		_rightMaster.setStatusFramePeriod(StatusFrame.Status_14_Turn_PIDF1, 20, Constants.kTimeoutMs);		
-		_leftMaster.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 5, Constants.kTimeoutMs);
+		_leftMaster.setStatusFramePeriod(StatusFrame.Status_12_Feedback1, 20, Constants.kTimeoutMs);
+		_leftMaster.setStatusFramePeriod(StatusFrame.Status_13_Base_PIDF0, 20, Constants.kTimeoutMs);
+		_leftMaster.setStatusFramePeriod(StatusFrame.Status_14_Turn_PIDF1, 20, Constants.kTimeoutMs);		
 
 		/* Initialize */
 		zeroSensors();
 
 		// Re-initalize the loops
 		_rightMaster.selectProfileSlot(Constants.kSlot_Velocit, Constants.PID_PRIMARY);
-		_rightMaster.selectProfileSlot(Constants.kSlot_Turning, Constants.PID_TURN);
+		// _rightMaster.selectProfileSlot(Constants.kSlot_Turning, Constants.PID_TURN);
+
+		_leftMaster.selectProfileSlot(Constants.kSlot_Velocit, Constants.PID_PRIMARY);
 
 
     }
@@ -176,15 +201,20 @@ public class Velocity {
 
     public void velPeriodic(double speed, double turn, boolean vel) {
 
-        double target_sensorUnitSpeed = speed;
+        double target_sensorUnitSpeed = speed * MAXSPEED * 2 * forwardScale;
+		double rot = turn * MAXSPEED * turnScale;
+
+
+
+		double left_set = (target_sensorUnitSpeed + rot) / 2;
 
 
 		// This VEL lets you go to a simple open loop output if vel is false. Used if weird
 		// things happen with the control loop round walls.
 
         if (vel) {
-            _rightMaster.set(ControlMode.Velocity, target_sensorUnitSpeed, DemandType.AuxPID, turn);
-            _leftMaster.follow(_rightMaster, FollowerType.AuxOutput1);
+            _rightMaster.set(ControlMode.Velocity, target_sensorUnitSpeed); //, DemandType.AuxPID, turn
+            _leftMaster.set(ControlMode.Velocity, target_sensorUnitSpeed);
 
             _rightFollow.follow(_rightMaster, FollowerType.PercentOutput);
             _leftFollow.follow(_leftMaster, FollowerType.PercentOutput);

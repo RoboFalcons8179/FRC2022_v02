@@ -45,8 +45,8 @@ public class Robot extends TimedRobot {
 	private static WPI_VictorSPX rightFollow = new WPI_VictorSPX(2);
 	private static WPI_VictorSPX leftFollow = new WPI_VictorSPX(4);
 
-	private static WPI_TalonFX right_shark = new WPI_TalonFX(6);
-	private static WPI_TalonFX left_shark = new WPI_TalonFX(5);
+	// private static WPI_TalonFX right_shark = new WPI_TalonFX(6);
+	// private static WPI_TalonFX left_shark = new WPI_TalonFX(5);
 
 
 	// JOYSTICKS
@@ -54,7 +54,7 @@ public class Robot extends TimedRobot {
 
 	// MOTION SYSTEMS
 	private static Velocity vroom = new Velocity(leftDrive, rightDrive, leftFollow, rightFollow, MAX_SPEED);
-	private static Sharkfin fin = new Sharkfin(right_shark, left_shark);
+	// private static Sharkfin fin = new Sharkfin(right_shark, left_shark);
 
 
 	// SMART DASHBOARD
@@ -67,15 +67,6 @@ public class Robot extends TimedRobot {
   	public void robotInit() {
 	////// Set drive motor phases and inversion //////////
 
-	vroom._rightInvert = true;
-	vroom._leftInvert = false;
-
-	//does leftDriveInvert == leftFollowInvert? ect.
-	vroom._rightFollowSame = true;
-	vroom._leftFollowSame = true;
-
-	vroom.rightPhase = false;
-	vroom.leftPhase = false;
 
 	// Shuffleboard
 
@@ -111,7 +102,7 @@ public class Robot extends TimedRobot {
   public void teleopInit() {
 
 	vroom.vel_initalize();
-	fin.shark_initial();
+	// fin.shark_initial();
 
 
 
@@ -127,11 +118,11 @@ double fin_set;
   public void teleopPeriodic() {
 
 
-	// speed = deadband(xbox_0.getRawAxis(1) * -1* MAX_SPEED);
-	// rot = deadband(xbox_0.getRawAxis(4) * .6);
+	speed = deadband(xbox_0.getRawAxis(1) * -1);
+	rot = deadband(xbox_0.getRawAxis(4) * .6);
 
-	speed = setSpeedNetwork.getDouble(1.0);
-	rot = setTurnNetwork.getDouble(1.0);
+	// speed = setSpeedNetwork.getDouble(1.0);
+	// rot = setTurnNetwork.getDouble(1.0);
 
 	// fin_set = setFinsNetwork.getDouble(1.0)
 	
@@ -139,7 +130,7 @@ double fin_set;
 
 
 	vroom.velPeriodic(speed, rot, true);
-	fin.sharkPeriodic(fin_set, true); // fin_set is range [-1,1]
+	// fin.sharkPeriodic(fin_set, true); // fin_set is range [-1,1]
 
 
 
@@ -182,10 +173,10 @@ double fin_set;
 		SmartDashboard.putNumber("Drive Speed Error", leftDrive.getSelectedSensorVelocity(1)+rightDrive.getSelectedSensorVelocity(0));
 		
 		
-		SmartDashboard.putNumber("right shark position", right_shark.getSelectedSensorPosition(0));
-		SmartDashboard.putNumber("left shark position", left_shark.getSelectedSensorPosition(0));
-		SmartDashboard.putNumber("right shark current", right_shark.getStatorCurrent());
-		SmartDashboard.putNumber("left shark current", left_shark.getStatorCurrent());
+		// SmartDashboard.putNumber("right shark position", right_shark.getSelectedSensorPosition(0));
+		// SmartDashboard.putNumber("left shark position", left_shark.getSelectedSensorPosition(0));
+		// SmartDashboard.putNumber("right shark current", right_shark.getStatorCurrent());
+		// SmartDashboard.putNumber("left shark current", left_shark.getStatorCurrent());
 
 		// speed = SmartDashboard.getNumber("speed network command", 0);
 		// rot = SmartDashboard.getNumber("turn network command", 0);
