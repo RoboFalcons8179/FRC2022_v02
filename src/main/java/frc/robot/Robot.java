@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.PowerDistribution;
 
 import java.util.Map;
 
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
@@ -44,17 +45,23 @@ public class Robot extends TimedRobot {
 	private static WPI_VictorSPX rightFollow = new WPI_VictorSPX(2);
 	private static WPI_VictorSPX leftFollow = new WPI_VictorSPX(4);
 
+	private static WPI_TalonFX right_shark = new WPI_TalonFX(6);
+	private static WPI_TalonFX left_shark = new WPI_TalonFX(5);
+
 
 	// JOYSTICKS
 	private static Joystick xbox_0 = new Joystick(0);
 
 	// MOTION SYSTEMS
 	private static Velocity vroom = new Velocity(leftDrive, rightDrive, leftFollow, rightFollow, MAX_SPEED);
+	private static Sharkfin fin = new Sharkfin(right_shark, left_shark);
+
 
 	// SMART DASHBOARD
 	private ShuffleboardTab data = Shuffleboard.getTab("DATA");
 	private NetworkTableEntry setSpeedNetwork = data.add("SET SPEED",0).getEntry();
 	private NetworkTableEntry setTurnNetwork = data.add("SET TURN",0).getEntry();
+	private NetworkTableEntry setFinsNetwork = data.add("SET FIN POSITION",0).getEntry();
 
 	@Override
   	public void robotInit() {
@@ -104,6 +111,7 @@ public class Robot extends TimedRobot {
   public void teleopInit() {
 
 	vroom.vel_initalize();
+	fin.shark_initial();
 
 
 
@@ -111,6 +119,7 @@ public class Robot extends TimedRobot {
 // Global variables
 double speed;
 double rot;
+double fin_set;
 
 
   /** This function is called periodically during operator control. */
@@ -124,8 +133,13 @@ double rot;
 	speed = setSpeedNetwork.getDouble(1.0);
 	rot = setTurnNetwork.getDouble(1.0);
 
+	// fin_set = setFinsNetwork.getDouble(1.0)
+	
+	fin_set = xbox_0.getRawAxis(1)*-1*.8;
+
 
 	vroom.velPeriodic(speed, rot, true);
+	fin.sharkPeriodic(fin_set, true); // fin_set is range [-1,1]
 
 
 
@@ -166,6 +180,12 @@ double rot;
 		SmartDashboard.putNumber("Current Right", rightDrive.getStatorCurrent());
 	
 		SmartDashboard.putNumber("Drive Speed Error", leftDrive.getSelectedSensorVelocity(1)+rightDrive.getSelectedSensorVelocity(0));
+		
+		
+		SmartDashboard.putNumber("right shark position", right_shark.getSelectedSensorPosition(0));
+		SmartDashboard.putNumber("left shark position", left_shark.getSelectedSensorPosition(0));
+		SmartDashboard.putNumber("right shark current", right_shark.getStatorCurrent());
+		SmartDashboard.putNumber("left shark current", left_shark.getStatorCurrent());
 
 		// speed = SmartDashboard.getNumber("speed network command", 0);
 		// rot = SmartDashboard.getNumber("turn network command", 0);
