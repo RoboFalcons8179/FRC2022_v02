@@ -30,7 +30,8 @@ public class Velocity {
 	TalonSRXConfiguration _leftConfig = new TalonSRXConfiguration();
 	TalonSRXConfiguration _rightConfig = new TalonSRXConfiguration();
     
-    
+    CheesyDrive Cheesy = new CheesyDrive();
+
     public boolean _leftInvert = false; 
 	public boolean _rightInvert = true;
 
@@ -199,30 +200,28 @@ public class Velocity {
 
     }
 
-    public void velPeriodic(double speed, double turn, boolean vel) {
+    public void velPeriodic(double speed, double turn, boolean isCheesy, boolean velctl, boolean isQuickTurn) {
 
-        double target_sensorUnitSpeed = speed * MAXSPEED * forwardScale;
-		double rot = turn * MAXSPEED * turnScale;
+		Cheesy.cheesyDrive(speed, turn, isQuickTurn);
 
+		double cheesyLeft = Cheesy.leftSpeed;
+		double cheesyRight = Cheesy.rightSpeed;
 
+		double cheesyLeftVel = cheesyLeft*MAXSPEED;
+		double cheesyRightVel = cheesyRight*MAXSPEED;
 
-		double left_set = target_sensorUnitSpeed;
-		double right_set = target_sensorUnitSpeed;
+		if (isCheesy && velctl) {
+			_rightMaster.set(ControlMode.Velocity, cheesyRightVel); //, DemandType.AuxPID, turn
+			_leftMaster.set(ControlMode.Velocity, cheesyLeftVel);
+		} 
+		else if (isCheesy) {
+			_rightMaster.set(ControlMode.PercentOutput, cheesyRight);
+			_leftMaster.set(ControlMode.PercentOutput, cheesyLeft);
 
-
-		// This VEL lets you go to a simple open loop output if vel is false. Used if weird
-		// things happen with the control loop round walls.
-
-        if (vel) {
-            _rightMaster.set(ControlMode.Velocity, right_set); //, DemandType.AuxPID, turn
-            _leftMaster.set(ControlMode.Velocity, left_set);
-
-        } else {
-			
-			// backup.arcadeDrive(speed/maxSpeed, turn);
-
-        }
-
+		}
+		else {
+			//open
+		}
 		_rightFollow.follow(_rightMaster, FollowerType.PercentOutput);
 		_leftFollow.follow(_leftMaster, FollowerType.PercentOutput);
     }

@@ -129,7 +129,7 @@ double fin_set;
 	fin_set = xbox_0.getRawAxis(1)*-1*.8;
 
 
-	vroom.velPeriodic(speed, rot, true);
+	vroom.velPeriodic(speed, rot, true, true, xbox_0.getRawButton(4));
 	// fin.sharkPeriodic(fin_set, true); // fin_set is range [-1,1]
 
 
