@@ -3,6 +3,8 @@ package frc.robot;
 import java.security.KeyPair;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
+import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.RemoteSensorSource;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
@@ -19,9 +21,9 @@ public class Sharkfin {
     private double lead_ki = 0;
     private double lead_iz = 1000; //Sensor units
 
-    private double follow_kf = 1;
-    private double follow_kp = 0.000;
-    private double follow_ki = 0;
+    // private double follow_kf = 1;
+    // private double follow_kp = 0.000;
+    // private double follow_ki = 0;
     
 
     public WPI_TalonFX left;
@@ -88,10 +90,29 @@ public class Sharkfin {
         rght.config_IntegralZone(0, lead_iz);
 
         // Setting Motion Magic
-        left.configMotionAcceleration(9999999);
+        left.configMotionAcceleration(12000);
         left.configMotionCruiseVelocity(6000);
-        rght.configMotionAcceleration(9999999);
+        rght.configMotionAcceleration(12000);
         rght.configMotionCruiseVelocity(6000);  
+
+        // Setting up limit switches
+        left.configForwardLimitSwitchSource(LimitSwitchSource.FeedbackConnector, LimitSwitchNormal.NormallyOpen);
+        left.configReverseLimitSwitchSource(LimitSwitchSource.FeedbackConnector, LimitSwitchNormal.NormallyOpen);
+
+        rght.configForwardLimitSwitchSource(LimitSwitchSource.RemoteTalon, LimitSwitchNormal.NormallyOpen, left.getDeviceID());
+        rght.configReverseLimitSwitchSource(LimitSwitchSource.RemoteTalon, LimitSwitchNormal.NormallyOpen, left.getDeviceID());
+
+
+        // Setting Up Limits
+        left.configForwardSoftLimitEnable(true);
+        rght.configForwardSoftLimitEnable(true);
+        left.configForwardSoftLimitThreshold(105000);
+        rght.configForwardSoftLimitThreshold(105000);
+   
+        left.configReverseSoftLimitEnable(true);
+        rght.configReverseSoftLimitEnable(true);
+        left.configReverseSoftLimitThreshold(3000);
+        rght.configReverseSoftLimitThreshold(3000);
 
         // Brake Modes - might need to change based on game.
         rght.setNeutralMode(NeutralMode.Coast);

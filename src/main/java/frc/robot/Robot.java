@@ -39,22 +39,22 @@ public class Robot extends TimedRobot {
 	private static final double MAX_SPEED = 500;
 
 	// DRIVE MOTORS
-	private static WPI_TalonSRX rightDrive = new WPI_TalonSRX(1);
-	private static WPI_TalonSRX leftDrive = new WPI_TalonSRX(3);
+	// private static WPI_TalonSRX rightDrive = new WPI_TalonSRX(1);
+	// private static WPI_TalonSRX leftDrive = new WPI_TalonSRX(3);
 	
-	private static WPI_VictorSPX rightFollow = new WPI_VictorSPX(2);
-	private static WPI_VictorSPX leftFollow = new WPI_VictorSPX(4);
+	// private static WPI_VictorSPX rightFollow = new WPI_VictorSPX(2);
+	// private static WPI_VictorSPX leftFollow = new WPI_VictorSPX(4);
 
-	// private static WPI_TalonFX right_shark = new WPI_TalonFX(6);
-	// private static WPI_TalonFX left_shark = new WPI_TalonFX(5);
+	private static WPI_TalonFX right_shark = new WPI_TalonFX(6);
+	private static WPI_TalonFX left_shark = new WPI_TalonFX(5);
 
 
 	// JOYSTICKS
 	private static Joystick xbox_0 = new Joystick(0);
 
 	// MOTION SYSTEMS
-	private static Velocity vroom = new Velocity(leftDrive, rightDrive, leftFollow, rightFollow, MAX_SPEED);
-	// private static Sharkfin fin = new Sharkfin(right_shark, left_shark);
+	// private static Velocity vroom = new Velocity(leftDrive, rightDrive, leftFollow, rightFollow, MAX_SPEED);
+	private static Sharkfin fin = new Sharkfin(right_shark, left_shark);
 
 
 	// SMART DASHBOARD
@@ -101,8 +101,8 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
 
-	vroom.vel_initalize();
-	// fin.shark_initial();
+	// vroom.vel_initalize();
+	fin.shark_initial();
 
 
 
@@ -126,11 +126,11 @@ double fin_set;
 
 	// fin_set = setFinsNetwork.getDouble(1.0)
 	
-	fin_set = xbox_0.getRawAxis(1)*-1*.8;
+	fin_set = xbox_0.getRawAxis(1)*-1*.4;
 
 
-	vroom.velPeriodic(speed, rot, true, true, xbox_0.getRawButton(4));
-	// fin.sharkPeriodic(fin_set, true); // fin_set is range [-1,1]
+	// vroom.velPeriodic(speed, rot, true, true, xbox_0.getRawButton(4));
+	fin.sharkPeriodic(fin_set, true); // fin_set is range [-1,1]
 
 
 
@@ -163,20 +163,20 @@ double fin_set;
 	}
 
 	private void updateSB_Periodic() {
-		SmartDashboard.putNumber("Forward Speed", speed);
-		SmartDashboard.putNumber("Turn Command", rot);
-		SmartDashboard.putNumber("Velocity Left", leftDrive.getSelectedSensorVelocity(1));
-		SmartDashboard.putNumber("Velocity Right", rightDrive.getSelectedSensorVelocity(0));
-		SmartDashboard.putNumber("Current Left", leftDrive.getStatorCurrent());
-		SmartDashboard.putNumber("Current Right", rightDrive.getStatorCurrent());
+		// SmartDashboard.putNumber("Forward Speed", speed);
+		// SmartDashboard.putNumber("Turn Command", rot);
+		// SmartDashboard.putNumber("Velocity Left", leftDrive.getSelectedSensorVelocity(1));
+		// SmartDashboard.putNumber("Velocity Right", rightDrive.getSelectedSensorVelocity(0));
+		// SmartDashboard.putNumber("Current Left", leftDrive.getStatorCurrent());
+		// SmartDashboard.putNumber("Current Right", rightDrive.getStatorCurrent());
 	
-		SmartDashboard.putNumber("Drive Speed Error", leftDrive.getSelectedSensorVelocity(1)+rightDrive.getSelectedSensorVelocity(0));
+		// SmartDashboard.putNumber("Drive Speed Error", leftDrive.getSelectedSensorVelocity(1)+rightDrive.getSelectedSensorVelocity(0));
 		
 		
-		// SmartDashboard.putNumber("right shark position", right_shark.getSelectedSensorPosition(0));
-		// SmartDashboard.putNumber("left shark position", left_shark.getSelectedSensorPosition(0));
-		// SmartDashboard.putNumber("right shark current", right_shark.getStatorCurrent());
-		// SmartDashboard.putNumber("left shark current", left_shark.getStatorCurrent());
+		SmartDashboard.putNumber("right shark position", right_shark.getSelectedSensorPosition(0));
+		SmartDashboard.putNumber("left shark position", left_shark.getSelectedSensorPosition(0));
+		SmartDashboard.putNumber("right shark current", right_shark.getStatorCurrent());
+		SmartDashboard.putNumber("left shark current", left_shark.getStatorCurrent());
 
 		// speed = SmartDashboard.getNumber("speed network command", 0);
 		// rot = SmartDashboard.getNumber("turn network command", 0);
