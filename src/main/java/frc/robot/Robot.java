@@ -7,13 +7,10 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.PowerDistribution;
 
-import java.util.Map;
-
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
-import edu.wpi.first.cscore.VideoSink;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.Joystick;
 
@@ -39,23 +36,27 @@ public class Robot extends TimedRobot {
 	private static final double MAX_SPEED = 500;
 
 	// DRIVE MOTORS
-	// private static WPI_TalonSRX rightDrive = new WPI_TalonSRX(1);
-	// private static WPI_TalonSRX leftDrive = new WPI_TalonSRX(3);
+	private static WPI_TalonSRX rightDrive = new WPI_TalonSRX(1);
+	private static WPI_TalonSRX leftDrive = new WPI_TalonSRX(3);
 	
-	// private static WPI_VictorSPX rightFollow = new WPI_VictorSPX(2);
-	// private static WPI_VictorSPX leftFollow = new WPI_VictorSPX(4);
+	private static WPI_VictorSPX rightFollow = new WPI_VictorSPX(2);
+	private static WPI_VictorSPX leftFollow = new WPI_VictorSPX(4);
 
+	// SHARKFIN MOTORS
 	private static WPI_TalonFX right_shark = new WPI_TalonFX(6);
 	private static WPI_TalonFX left_shark = new WPI_TalonFX(5);
 
+	// ARM MOTORS
+	private static WPI_TalonFX right_chop = new WPI_TalonFX(7);
+	private static WPI_TalonFX left_chop = new WPI_TalonFX(8);
 
 	// JOYSTICKS
 	private static Joystick xbox_0 = new Joystick(0);
 
 	// MOTION SYSTEMS
-	// private static Velocity vroom = new Velocity(leftDrive, rightDrive, leftFollow, rightFollow, MAX_SPEED);
+	private static Velocity vroom = new Velocity(leftDrive, rightDrive, leftFollow, rightFollow, MAX_SPEED);
 	private static Sharkfin fin = new Sharkfin(right_shark, left_shark);
-
+	private static arm chop = new arm(left_chop, right_chop);
 
 	// SMART DASHBOARD
 	private ShuffleboardTab data = Shuffleboard.getTab("DATA");
@@ -103,6 +104,8 @@ public class Robot extends TimedRobot {
 
 	// vroom.vel_initalize();
 	fin.shark_initial();
+	chop.arm_init();
+
 
 
 
@@ -111,7 +114,8 @@ public class Robot extends TimedRobot {
 double speed;
 double rot;
 double fin_set;
-
+boolean home_sf = false;
+boolean home_arm = false;
 
   /** This function is called periodically during operator control. */
   @Override
@@ -121,16 +125,41 @@ double fin_set;
 	speed = deadband(xbox_0.getRawAxis(1) * -1);
 	rot = deadband(xbox_0.getRawAxis(4));
 
-	// speed = setSpeedNetwork.getDouble(1.0);
-	// rot = setTurnNetwork.getDouble(1.0);
+	speed = setSpeedNetwork.getDouble(1.0);
+	rot = setTurnNetwork.getDouble(1.0);
 
-	// fin_set = setFinsNetwork.getDouble(1.0)
+	fin_set = setFinsNetwork.getDouble(1.0);
 	
 	fin_set = xbox_0.getRawAxis(1)*-1*.4;
 
 
-	// vroom.velPeriodic(speed, rot, true, true, xbox_0.getRawButton(4));
-	fin.sharkPeriodic(fin_set, true); // fin_set is range [-1,1]
+	vroom.velPeriodic(speed, rot, true, true, xbox_0.getRawButton(4));
+	// Velocity Drive args in order:
+		// speed in range [-1,1]
+		// rotate in range [-1,1]
+		// bool is cheezy: are you using cheese drive (yes)
+		// bool velctl: using velocity control or open loop.
+		// bool cheezy sharp: in cheezy, this will start a sharp turn.
+
+
+
+	fin.sharkPeriodic(fin_set, true, home_sf); // fin_set is range [-1,1]
+	// Fin args in order:
+		// Setpoint in range [-1, 1]
+		// Manual move mode - true for position control,
+		//	 false for manual move. see safety in the fin for 
+		//	 dangerous situations.
+		// Bool: override to home the arms by bringing all 
+		//	 the way bac. Can be VERY dangerous and does not
+		//   actually home. do not use if possible.
+
+	chop.arm_Periodic(0, 0, false, home_arm);
+	// Arm args in order:
+		// Setpoint in Sensor Units, 
+		// Manual move value (1 move up, 0 hold, -1 move down)
+		// Mode: Bool, true for position control and using setpoint,
+		//		false for using the arb pwm (adjust)
+		// home: Bool, override all for homing to the lowered position.
 
 
 

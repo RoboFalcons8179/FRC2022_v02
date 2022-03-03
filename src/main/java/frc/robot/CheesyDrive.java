@@ -1,3 +1,5 @@
+// Credit to FRC Team 254 2016 robot. Modiied for working with our classes.
+
 package frc.robot;
 
 /**

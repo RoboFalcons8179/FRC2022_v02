@@ -21,6 +21,8 @@ public class Sharkfin {
     private double lead_ki = 0;
     private double lead_iz = 1000; //Sensor units
 
+    private final double homePWM = -0.1;
+
     // private double follow_kf = 1;
     // private double follow_kp = 0.000;
     // private double follow_ki = 0;
@@ -29,12 +31,17 @@ public class Sharkfin {
     public WPI_TalonFX left;
     public WPI_TalonFX rght;
 
-    private TalonFXConfiguration _leftConfig = new TalonFXConfiguration();
-    private TalonFXConfiguration _rightConfig = new TalonFXConfiguration();
+    private final int masterID;
+
+    // private TalonFXConfiguration _leftConfig = new TalonFXConfiguration();
+    // private TalonFXConfiguration _rightConfig = new TalonFXConfiguration();
     
     Sharkfin(WPI_TalonFX rght_in, WPI_TalonFX left_in) {
         left = left_in;
         rght = rght_in;
+
+        left.configFactoryDefault();
+        rght.configFactoryDefault();
 
 
         // // Configuring Sensors
@@ -73,6 +80,9 @@ public class Sharkfin {
         // left.configAllSettings(_leftConfig);
         // rght.configAllSettings(_rightConfig);
 
+        // MASTER ID: LEFT
+        masterID = left.getDeviceID();
+        
         // Proper inversions for our lift
         left.setInverted(TalonFXInvertType.CounterClockwise); //false
         rght.setInverted(TalonFXInvertType.Clockwise); //true
@@ -96,11 +106,15 @@ public class Sharkfin {
         rght.configMotionCruiseVelocity(6000);  
 
         // Setting up limit switches
-        left.configForwardLimitSwitchSource(LimitSwitchSource.FeedbackConnector, LimitSwitchNormal.NormallyOpen);
-        left.configReverseLimitSwitchSource(LimitSwitchSource.FeedbackConnector, LimitSwitchNormal.NormallyOpen);
+        left.configForwardLimitSwitchSource(LimitSwitchSource.FeedbackConnector, 
+            LimitSwitchNormal.NormallyOpen);
+        left.configReverseLimitSwitchSource(LimitSwitchSource.FeedbackConnector, 
+            LimitSwitchNormal.NormallyOpen);
 
-        rght.configForwardLimitSwitchSource(LimitSwitchSource.RemoteTalon, LimitSwitchNormal.NormallyOpen, left.getDeviceID());
-        rght.configReverseLimitSwitchSource(LimitSwitchSource.RemoteTalon, LimitSwitchNormal.NormallyOpen, left.getDeviceID());
+        rght.configForwardLimitSwitchSource(LimitSwitchSource.RemoteTalon, 
+            LimitSwitchNormal.NormallyOpen, masterID);
+        rght.configReverseLimitSwitchSource(LimitSwitchSource.RemoteTalon, 
+            LimitSwitchNormal.NormallyOpen, masterID);
 
 
         // Setting Up Limits
@@ -129,37 +143,51 @@ public class Sharkfin {
         left.set(ControlMode.PercentOutput, 0);
         rght.set(ControlMode.PercentOutput, 0);
 
-
-
     }
 
     public boolean safety = true;
     // Safety should ALWAYS be true. The only time it is false is if the 
     // drive system does not have the power.
 
-    public void sharkPeriodic(double setpoint, boolean mode){
+    public void sharkPeriodic(double setpoint, boolean mode, boolean home){
     //setpoint - the setpoint for the position. -1 to 1 mapped to 0 to 90k
     //  if in open loop mode, use the raw controller input [-1 to 1]
     //mode - motion magic (true) or open loop (false)
+    
+    if (home) {
+        // home mode
 
-    if (mode) {
-
-
-        left.set(ControlMode.MotionMagic, remap(setpoint));
-        rght.set(ControlMode.MotionMagic, remap(setpoint));
+        left.configReverseSoftLimitEnable(false);
+        rght.configReverseSoftLimitEnable(false);
+        left.set(ControlMode.PercentOutput, homePWM);
+        rght.set(ControlMode.PercentOutput, homePWM);
 
     } else {
-        if (safety) {
-            left.setNeutralMode(NeutralMode.Coast);
-            left.set(ControlMode.PercentOutput, 0);
-            rght.set(ControlMode.PercentOutput, setpoint);
+
+        left.configReverseSoftLimitEnable(true);
+        rght.configReverseSoftLimitEnable(true);
+
+
+        if (mode) {
+
+
+            left.set(ControlMode.MotionMagic, remap(setpoint));
+            rght.set(ControlMode.MotionMagic, remap(setpoint));
+
         } else {
-            left.set(ControlMode.PercentOutput, setpoint);
-            rght.set(ControlMode.PercentOutput, setpoint);
+            if (safety) {
+                left.setNeutralMode(NeutralMode.Coast);
+                left.set(ControlMode.PercentOutput, 0);
+                rght.set(ControlMode.PercentOutput, setpoint);
+            } else {
+                left.set(ControlMode.PercentOutput, setpoint);
+                rght.set(ControlMode.PercentOutput, setpoint);
+            }
+
+            setpoint = unmap(rght.getSelectedSensorPosition());
+
         }
-
     }
-
     }
 
     private double remap (double input) {
@@ -167,5 +195,9 @@ public class Sharkfin {
         input = input + 1;
         return input * MAX_FIN_LEN/2;
 
+    }
+
+    private double unmap (double input) {
+        return (2*input/MAX_FIN_LEN) - 1;
     }
 }

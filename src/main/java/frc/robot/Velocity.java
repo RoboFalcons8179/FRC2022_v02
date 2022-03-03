@@ -64,6 +64,11 @@ public class Velocity {
         _leftFollow = _leftFollowIn;
         _rightFollow = _rightFollowIn;
 
+		_leftMaster.configFactoryDefault();
+		_rightMaster.configFactoryDefault();
+		_leftFollow.configFactoryDefault();
+		_rightFollow.configFactoryDefault();
+
 		
 		/* Set Neutral Mode */
 		_leftMaster.setNeutralMode(NeutralMode.Coast);
