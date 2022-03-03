@@ -163,6 +163,9 @@ public class Sharkfin {
         left.set(ControlMode.PercentOutput, homePWM);
         rght.set(ControlMode.PercentOutput, homePWM);
 
+        setpoint = unmap(rght.getSelectedSensorPosition());
+
+
     } else {
 
         left.configReverseSoftLimitEnable(true);

@@ -143,7 +143,7 @@ boolean home_arm = false;
 
 
 
-	fin.sharkPeriodic(fin_set, true, home_sf); // fin_set is range [-1,1]
+	fin.sharkPeriodic(fin_set, true, xbox_0.getRawButton(4)); // fin_set is range [-1,1]
 	// Fin args in order:
 		// Setpoint in range [-1, 1]
 		// Manual move mode - true for position control,
