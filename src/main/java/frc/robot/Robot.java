@@ -130,10 +130,10 @@ boolean home_arm = false;
 
 	fin_set = setFinsNetwork.getDouble(1.0);
 	
-	fin_set = xbox_0.getRawAxis(1)*-1*.4;
+	fin_set = -1*.4*xbox_0.getRawAxis(1);
 
 
-	vroom.velPeriodic(speed, rot, true, true, xbox_0.getRawButton(4));
+	// vroom.velPeriodic(speed, rot, true, true, xbox_0.getRawButton(4));
 	// Velocity Drive args in order:
 		// speed in range [-1,1]
 		// rotate in range [-1,1]
@@ -153,7 +153,7 @@ boolean home_arm = false;
 		//	 the way bac. Can be VERY dangerous and does not
 		//   actually home. do not use if possible.
 
-	chop.arm_Periodic(0, 0, false, home_arm);
+	// chop.arm_Periodic(0, 0, false, home_arm);
 	// Arm args in order:
 		// Setpoint in Sensor Units, 
 		// Manual move value (1 move up, 0 hold, -1 move down)
@@ -207,7 +207,10 @@ boolean home_arm = false;
 		SmartDashboard.putNumber("right shark current", right_shark.getStatorCurrent());
 		SmartDashboard.putNumber("left shark current", left_shark.getStatorCurrent());
 
-		// speed = SmartDashboard.getNumber("speed network command", 0);
-		// rot = SmartDashboard.getNumber("turn network command", 0);
+		SmartDashboard.putBoolean("fin left rev limit SW", left_shark.isRevLimitSwitchClosed() == 1);
+		SmartDashboard.putBoolean("fin rght rev limit SW", right_shark.isRevLimitSwitchClosed() == 1);
+		SmartDashboard.putBoolean("fin left for limit SW", left_shark.isFwdLimitSwitchClosed() == 1);
+		SmartDashboard.putBoolean("fin rght for limit SW", right_shark.isFwdLimitSwitchClosed() == 1);
+
 	}
 }

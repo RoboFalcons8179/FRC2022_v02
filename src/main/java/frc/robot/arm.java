@@ -76,6 +76,9 @@ public class arm {
         right.setInverted(right_invert); // false
         left.setInverted(left_invert); // true
 
+        right.setSensorPhase(false);
+        left.setSensorPhase(false);
+
         left.setNeutralMode(NeutralMode.Brake);
         right.setNeutralMode(NeutralMode.Brake);
 

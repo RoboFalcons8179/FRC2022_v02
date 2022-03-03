@@ -6,6 +6,7 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
 import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.RemoteLimitSwitchSource;
 import com.ctre.phoenix.motorcontrol.RemoteSensorSource;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
@@ -111,9 +112,9 @@ public class Sharkfin {
         left.configReverseLimitSwitchSource(LimitSwitchSource.FeedbackConnector, 
             LimitSwitchNormal.NormallyOpen);
 
-        rght.configForwardLimitSwitchSource(LimitSwitchSource.RemoteTalon, 
+        rght.configForwardLimitSwitchSource(RemoteLimitSwitchSource.RemoteTalon, 
             LimitSwitchNormal.NormallyOpen, masterID);
-        rght.configReverseLimitSwitchSource(LimitSwitchSource.RemoteTalon, 
+        rght.configReverseLimitSwitchSource(RemoteLimitSwitchSource.RemoteTalon, 
             LimitSwitchNormal.NormallyOpen, masterID);
 
 
