@@ -188,6 +188,12 @@ public class Velocity {
 		_leftMaster.selectProfileSlot(Constants.kSlot_Velocit, Constants.PID_PRIMARY);
 
 
+		// Untested Current Limiting
+		_leftMaster.configPeakCurrentLimit(40, 20);
+		_rightMaster.configPeakCurrentLimit(40, 20);
+		_leftMaster.enableCurrentLimit(true);
+		_rightMaster.enableCurrentLimit(true);
+
     }
 
 
@@ -205,7 +211,7 @@ public class Velocity {
 
     }
 
-    public void velPeriodic(double speed, double turn, boolean isCheesy, boolean velctl, boolean isQuickTurn) {
+    public void velPeriodic(double speed, double turn, boolean isCheesy, boolean velctl, boolean isQuickTurn, boolean RL, boolean RR) {
 
 		Cheesy.cheesyDrive(speed, turn, isQuickTurn);
 
@@ -215,7 +221,15 @@ public class Velocity {
 		double cheesyLeftVel = cheesyLeft*MAXSPEED;
 		double cheesyRightVel = cheesyRight*MAXSPEED;
 
-		if (isCheesy && velctl) {
+		if (RL) {
+			// Rotate left
+
+		} else if (RR) {
+			// Rotate right
+			_rightMaster.set(ControlMode.Velocity, cheesyRightVel); //, DemandType.AuxPID, turn
+			_leftMaster.set(ControlMode.Velocity, cheesyLeftVel);			
+
+		} else if (isCheesy && velctl) {
 			_rightMaster.set(ControlMode.Velocity, cheesyRightVel); //, DemandType.AuxPID, turn
 			_leftMaster.set(ControlMode.Velocity, cheesyLeftVel);
 		} 

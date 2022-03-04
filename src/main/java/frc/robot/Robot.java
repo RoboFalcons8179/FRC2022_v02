@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.PowerDistribution;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
+import com.ctre.phoenix.music.Orchestra;
 
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.Joystick;
@@ -33,7 +34,7 @@ public class Robot extends TimedRobot {
 
 	// SAFETY
 
-	private static final double MAX_SPEED = 500;
+	private static final double MAX_SPEED = 400;
 
 	// DRIVE MOTORS
 	private static WPI_TalonSRX rightDrive = new WPI_TalonSRX(1);
@@ -122,18 +123,19 @@ boolean home_arm = false;
   public void teleopPeriodic() {
 
 
+
+	// speed = setSpeedNetwork.getDouble(1.0);
+	// rot = setTurnNetwork.getDouble(1.0);
+
+	// fin_set = setFinsNetwork.getDouble(1.0);
+
+	
 	speed = deadband(xbox_0.getRawAxis(1) * -1);
 	rot = deadband(xbox_0.getRawAxis(4));
-
-	speed = setSpeedNetwork.getDouble(1.0);
-	rot = setTurnNetwork.getDouble(1.0);
-
-	fin_set = setFinsNetwork.getDouble(1.0);
-	
 	fin_set = -1*.4*xbox_0.getRawAxis(1);
 
 
-	// vroom.velPeriodic(speed, rot, true, true, xbox_0.getRawButton(4));
+	// vroom.velPeriodic(speed, rot, true, true, xbox_0.getRawButton(4), false, false);
 	// Velocity Drive args in order:
 		// speed in range [-1,1]
 		// rotate in range [-1,1]
@@ -143,7 +145,7 @@ boolean home_arm = false;
 
 
 
-	fin.sharkPeriodic(fin_set, true, xbox_0.getRawButton(4)); // fin_set is range [-1,1]
+	// fin.sharkPeriodic(fin_set, true, xbox_0.getRawButton(4)); // fin_set is range [-1,1]
 	// Fin args in order:
 		// Setpoint in range [-1, 1]
 		// Manual move mode - true for position control,
@@ -153,7 +155,7 @@ boolean home_arm = false;
 		//	 the way bac. Can be VERY dangerous and does not
 		//   actually home. do not use if possible.
 
-	// chop.arm_Periodic(0, 0, false, home_arm);
+	chop.arm_Periodic(0, 0, false, home_arm);
 	// Arm args in order:
 		// Setpoint in Sensor Units, 
 		// Manual move value (1 move up, 0 hold, -1 move down)
@@ -177,12 +179,26 @@ boolean home_arm = false;
   public void disabledPeriodic() {}
 
   /** This function is called once when test mode is enabled. */
+
+  Orchestra sing = new Orchestra();
   @Override
-  public void testInit() {}
+  public void testInit() {
+	sing.addInstrument(left_shark);
+	sing.addInstrument(right_shark);
+	sing.addInstrument(left_chop);
+	sing.addInstrument(right_chop);
+
+	sing.loadMusic("C:\\Users\\Robotics\\Documents\\FRC2022_v02\\src\\main\\java\\frc\\robot\\take5.chrp");
+	sing.play();
+
+
+
+  }
 
   /** This function is called periodically during test mode. */
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+  }
 
   private double deadband(double d) {
 	if (-0.20 < d && d < 0.20)

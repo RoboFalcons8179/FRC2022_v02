@@ -3,6 +3,8 @@ package frc.robot;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
+import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
@@ -25,16 +27,18 @@ public class arm {
     private final double homePWM = -0.1;
 
     // constants for the arm position
-    private final double lower_deg = -60.0;
-    private final double upper_deg = 11.;
-    private final double max_sensor = 200000;
+    private final double lower_deg = -37.8;
+    private final double upper_deg = 116. - 90.;
+    private final double max_sensor = 80000;
     private final double min_sensor = 0;
 
         // Calculating A, can find empirically
         //rather than physics-ly
-    private final double maxTorque = 30;
-    private final double stallTorque = 4.6;
-    private final double gearRatio = 6.4*3*9;
+    // private final double maxTorque = 30;
+    // private final double stallTorque = 4.6;
+    // private final double gearRatio = 6.4*3*9;
+    private final double A = 0.05;
+
 
     // constants for the loop
     private double kp = 0;
@@ -49,7 +53,6 @@ public class arm {
 
     // Calculated constants
     private final double ksensorToDeg;
-    private final double A;
     private final int masterID;
 
 
@@ -65,8 +68,10 @@ public class arm {
         masterID = left.getDeviceID();
 
         // calculating the constants
+        // A = gearRatio * maxTorque / stallTorque;
+
+
         ksensorToDeg = (max_sensor - min_sensor) / (upper_deg - lower_deg);
-        A = gearRatio * maxTorque / stallTorque;
 
         setpoint = 0;
 
@@ -91,7 +96,22 @@ public class arm {
 
         left.selectProfileSlot(slotID, 0); // Primary loop
 
-    }
+
+        // Current Limits
+        left.configSupplyCurrentLimit(
+            new SupplyCurrentLimitConfiguration(true,25,35,1.0));
+        right.configSupplyCurrentLimit(
+            new SupplyCurrentLimitConfiguration(true,25,35,1.0));
+        left.configStatorCurrentLimit(
+            new StatorCurrentLimitConfiguration(true,25,35,1.0));
+        right.configStatorCurrentLimit(
+            new StatorCurrentLimitConfiguration(true,25,35,1.0));
+
+        left.configForwardSoftLimitThreshold(max_sensor - 3000);
+        left.configReverseSoftLimitThreshold(min_sensor + 1000);
+        left.configForwardSoftLimitEnable(true, 10);
+        left.configReverseSoftLimitEnable(true, 10);
+        }
 
     public void arm_init() {
 

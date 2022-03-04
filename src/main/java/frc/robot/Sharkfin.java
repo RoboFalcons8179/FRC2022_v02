@@ -8,6 +8,8 @@ import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.RemoteLimitSwitchSource;
 import com.ctre.phoenix.motorcontrol.RemoteSensorSource;
+import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
+import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
@@ -117,6 +119,16 @@ public class Sharkfin {
         rght.configReverseLimitSwitchSource(RemoteLimitSwitchSource.RemoteTalon, 
             LimitSwitchNormal.NormallyOpen, masterID);
 
+        // Current Limits
+        left.configSupplyCurrentLimit(
+            new SupplyCurrentLimitConfiguration(true,25,35,1.0));
+        rght.configSupplyCurrentLimit(
+            new SupplyCurrentLimitConfiguration(true,25,35,1.0));
+        left.configStatorCurrentLimit(
+            new StatorCurrentLimitConfiguration(true,25,35,1.0));
+        rght.configStatorCurrentLimit(
+            new StatorCurrentLimitConfiguration(true,25,35,1.0));
+
 
         // Setting Up Limits
         left.configForwardSoftLimitEnable(true);
@@ -173,7 +185,7 @@ public class Sharkfin {
 
 
         if (mode) {
-
+                // Normal Position COntrol
 
             left.set(ControlMode.MotionMagic, remap(setpoint));
             rght.set(ControlMode.MotionMagic, remap(setpoint));
