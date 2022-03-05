@@ -223,11 +223,13 @@ public class Velocity {
 
 		if (RL) {
 			// Rotate left
+			_rightMaster.set(ControlMode.Velocity, +170); //, DemandType.AuxPID, turn
+			_leftMaster.set(ControlMode.Velocity, -170);	
 
 		} else if (RR) {
 			// Rotate right
-			_rightMaster.set(ControlMode.Velocity, cheesyRightVel); //, DemandType.AuxPID, turn
-			_leftMaster.set(ControlMode.Velocity, cheesyLeftVel);			
+			_rightMaster.set(ControlMode.Velocity, -170); //, DemandType.AuxPID, turn
+			_leftMaster.set(ControlMode.Velocity, +170);			
 
 		} else if (isCheesy && velctl) {
 			_rightMaster.set(ControlMode.Velocity, cheesyRightVel); //, DemandType.AuxPID, turn

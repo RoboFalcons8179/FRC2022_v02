@@ -10,10 +10,10 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 public class arm {
 
-    private WPI_TalonFX left,right;
+    private WPI_TalonFX left_arm,right_arm;
 
-    public TalonFXInvertType right_invert = TalonFXInvertType.CounterClockwise;
-    public TalonFXInvertType left_invert = TalonFXInvertType.Clockwise;
+    public TalonFXInvertType right_arm_invert = TalonFXInvertType.CounterClockwise;
+    public TalonFXInvertType left_arm_invert = TalonFXInvertType.Clockwise;
 
 
     // CONSTANTS
@@ -37,16 +37,20 @@ public class arm {
     // private final double maxTorque = 30;
     // private final double stallTorque = 4.6;
     // private final double gearRatio = 6.4*3*9;
-    private final double A = 0.05;
+    private final double A = 0.076;
 
 
     // constants for the loop
-    private double kp = 0;
-    private double ki = 0;
-    private double kd = 0;
-    private double iz = 0;
-    private double mmVel = 0;
-    private double mmAcc = 0;
+    private final double kp = 0.00005;
+    private final double ki = 0.0000;
+    private final double kd = 0;
+    private final double iz = 1000;
+    private final double err = 1000;
+    private final double mmVel = 10000;
+    private final double mmAcc = mmVel * 3;
+    private final int s_curve = 3;    
+    private final double kf = 1023/mmVel;
+
 
     private int slotID = 0;
 
@@ -59,13 +63,22 @@ public class arm {
     // The position setpoint, can only be accessed by the functions.
     private static double setpoint;
 
+    // SmartDashBoard Things
+    public double Langle, Rangle;
+    public double aux;
+    public double Lcurr, Rcurr;
+    public double set_out;
 
-    arm(WPI_TalonFX left_in, WPI_TalonFX right_in) {
+    public double ArbFeedback;
 
-        left = left_in;
-        right = right_in;
+    
 
-        masterID = left.getDeviceID();
+    arm(WPI_TalonFX left_arm_in, WPI_TalonFX right_arm_in) {
+
+        left_arm = left_arm_in;
+        right_arm = right_arm_in;
+
+        masterID = left_arm.getDeviceID();
 
         // calculating the constants
         // A = gearRatio * maxTorque / stallTorque;
@@ -75,83 +88,136 @@ public class arm {
 
         setpoint = 0;
 
-        left.configFactoryDefault();
-        right.configFactoryDefault();
+        left_arm.configFactoryDefault();
+        right_arm.configFactoryDefault();
 
-        right.setInverted(right_invert); // false
-        left.setInverted(left_invert); // true
+        right_arm.setInverted(right_arm_invert); // false
+        left_arm.setInverted(left_arm_invert); // true
 
-        right.setSensorPhase(false);
-        left.setSensorPhase(false);
+        right_arm.setSensorPhase(false);
+        left_arm.setSensorPhase(false);
 
-        left.setNeutralMode(NeutralMode.Brake);
-        right.setNeutralMode(NeutralMode.Brake);
+        left_arm.setNeutralMode(NeutralMode.Brake);
+        right_arm.setNeutralMode(NeutralMode.Brake);
 
-        left.config_kP(slotID, kp);
-        left.config_kI(slotID, ki);
-        left.config_kD(slotID, kd);
-        left.config_IntegralZone(slotID, iz);
-        left.configMotionCruiseVelocity(mmVel);
-        left.configMotionCruiseVelocity(mmAcc);
+        left_arm.config_kP(slotID, kp);
+        left_arm.config_kI(slotID, ki);
+        left_arm.config_kD(slotID, kd);
+        left_arm.config_kF(slotID, kf);
+        left_arm.config_IntegralZone(slotID, iz);
+        left_arm.configMotionCruiseVelocity(mmVel);
+        left_arm.configMotionAcceleration(mmAcc);
+        left_arm.configMotionSCurveStrength(s_curve);
+        left_arm.configAllowableClosedloopError(slotID, err, 1);
+        
 
-        left.selectProfileSlot(slotID, 0); // Primary loop
+        left_arm.selectProfileSlot(slotID, 0); // Primary loop
 
 
         // Current Limits
-        left.configSupplyCurrentLimit(
+        left_arm.configSupplyCurrentLimit(
             new SupplyCurrentLimitConfiguration(true,25,35,1.0));
-        right.configSupplyCurrentLimit(
+        right_arm.configSupplyCurrentLimit(
             new SupplyCurrentLimitConfiguration(true,25,35,1.0));
-        left.configStatorCurrentLimit(
+        left_arm.configStatorCurrentLimit(
             new StatorCurrentLimitConfiguration(true,25,35,1.0));
-        right.configStatorCurrentLimit(
+        right_arm.configStatorCurrentLimit(
             new StatorCurrentLimitConfiguration(true,25,35,1.0));
 
-        left.configForwardSoftLimitThreshold(max_sensor - 3000);
-        left.configReverseSoftLimitThreshold(min_sensor + 1000);
-        left.configForwardSoftLimitEnable(true, 10);
-        left.configReverseSoftLimitEnable(true, 10);
+        left_arm.configForwardSoftLimitThreshold(max_sensor - 3000);
+        left_arm.configReverseSoftLimitThreshold(min_sensor + 1000);
+        left_arm.configForwardSoftLimitEnable(false, 5);
+        left_arm.configReverseSoftLimitEnable(false, 5);
         }
 
     public void arm_init() {
 
-        left.set(ControlMode.PercentOutput, 0);
-        right.set(ControlMode.PercentOutput, 0);
+        left_arm.set(ControlMode.PercentOutput, 0);
+        right_arm.set(ControlMode.PercentOutput, 0);
 
-        right.set(ControlMode.Follower, masterID);
+        right_arm.set(ControlMode.Follower, masterID);
 
-        setSetpointSU(left.getSelectedSensorPosition());
+        left_arm.setSelectedSensorPosition(0);
+        right_arm.setSelectedSensorPosition(0);
+
+        setSetpointSU(1000);
     }
 
-    public void arm_Periodic(double setpoint, double move, boolean mode, boolean home) {
-        // if mode is true, we are going to be using position control
-        // if home is true, this is going to home.
-       
-        double currentSensor = left.getSelectedSensorPosition();
+    // public void arm_Periodic(double in_set, int status, boolean sticky) {
+    //     // if mode is true, we are going to be using position control
+    //     // if home is true, this is going to home.
+
+
+
+    //     switch (status) {
+
+    //         case 1: // holding position
+
+
+    //             // Set up hold loop
+
+    //             break;
+
+    //         case 2: // moving up to specific position
+
+    //             left_arm.selectProfileSlot(UP_SLOT, 0);
+                
+    //             break;
+
+    //         case 3: // moving down to specific position
+
+    //             left_arm.selectProfileSlot(DOWN_SLOT, 0);
+
+
+    //         case -1:
+    //             // Homing the arms
+    //             left_arm.set(ControlMode.PercentOutput, homePWM);
+    //             right_arm.set(ControlMode.Follower, left_arm.getDeviceID());
+    //             setSetpointSU(left_arm.getSelectedSensorPosition());
+    //             break; 
+
+    //         default:
+    //             left_arm.set(ControlMode.PercentOutput, 0);
+    //             break;
+    //     }
+
+
+
+    //     setSetpointSU(in_set);
+
+    //     if (home) {
+
+
+    //     } else {
+    //         if (mode) {
+    //             // Using position control
+    //             left_arm.set(ControlMode.MotionMagic, setpoint, DemandType.ArbitraryFeedForward, ArbFeedback);
+    //             // left_arm.set(ControlMode.PercentOutput, 0, DemandType.ArbitraryFeedForward, ArbFeedback);
+    //             right_arm.set(ControlMode.Follower, left_arm.getDeviceID());
+
+    //         } else {
+    //             // using PWM adjustments.
+    //             double adjust = getAdjust(move);
+
+    //             left_arm.set(ControlMode.PercentOutput, adjust, DemandType.ArbitraryFeedForward, ArbFeedback);
+    //             right_arm.set(ControlMode.Follower, left_arm.getDeviceID());
+
+    //             setSetpointSU(left_arm.getSelectedSensorPosition());
+    //         }
+    //     }
+
+
+
+
+    // }
+
+    public void findArbFB() {
+
+        double currentSensor = left_arm.getSelectedSensorPosition();
         double currentAngle = remapSensorToDegrees(currentSensor);
 
-        double ArbFeedback = findArbFeedback(currentAngle);
+        ArbFeedback = findArbFeedback(currentAngle);
 
-        if (home) {
-            // Homing the arms
-            left.set(ControlMode.PercentOutput, homePWM);
-            right.set(ControlMode.Follower, left.getDeviceID());
-        } else {
-            if (mode) {
-                // Using position control
-                left.set(ControlMode.MotionMagic, setpoint, DemandType.ArbitraryFeedForward, ArbFeedback);
-                right.set(ControlMode.Follower, left.getDeviceID());
-
-            } else {
-                // using PWM adjustments.
-                double adjust = getAdjust(move);
-
-                left.set(ControlMode.PercentOutput, adjust, DemandType.ArbitraryFeedForward, ArbFeedback);
-                right.set(ControlMode.Follower, left.getDeviceID());
-
-                setSetpointSU(left.getSelectedSensorPosition());
-            }
-        }
     }
 
     // conversion functions. remember line formula (x-x1)k = (y-y1)
@@ -165,7 +231,7 @@ public class arm {
     }
 
     public double remapSensorToDegrees (double sensor) {
-        double out = (sensor - min_sensor / ksensorToDeg) + lower_deg ;
+        double out = ((sensor - min_sensor) / ksensorToDeg) + lower_deg ;
         return out;
     }
 
@@ -191,4 +257,15 @@ public class arm {
 
     }
     
+
+    public void updateSD() {
+        // SmartDashboard Things
+        Langle = remapSensorToDegrees(left_arm.getSelectedSensorPosition());
+        Rangle = remapSensorToDegrees(right_arm.getSelectedSensorPosition());
+        aux = ArbFeedback;
+        Lcurr = left_arm.getStatorCurrent();
+        Rcurr = right_arm.getStatorCurrent();
+        set_out = setpoint;
+
+    }
 }
