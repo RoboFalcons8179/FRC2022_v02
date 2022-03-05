@@ -12,11 +12,14 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 public class Sharkfin {
 
-    public double MAX_FIN_LEN = 100000;
+    public double MAX_FIN_LEN = 108000;
 
     // Setting up the lead controller. Make it sharp.
     private double lead_kp = 0.4;
     private double lead_ki = 0.0001;
+    private double pull_kp = 0.05;
+    private double pull_ki = 0.0001;
+    private double pull_kf = 5;
     private double lead_iz = 0; //Sensor units
    
     // private double lead_kp = 0.4;
@@ -38,10 +41,19 @@ public class Sharkfin {
     public double setpoint;
     private double SAFETY_BLOCK = 0.85;
 
+    int normalAccel = 24000;
+    int normalCruise = 6000;
+
+    int pullCruise = 450;
+    int pullAccel = 3*pullCruise;
+  
+
+
     // private TalonFXConfiguration _leftConfig = new TalonFXConfiguration();
     // private TalonFXConfiguration _rightConfig = new TalonFXConfiguration();
     
     Sharkfin(WPI_TalonFX rght_in, WPI_TalonFX left_in) {
+
         left = left_in;
         rght = rght_in;
 
@@ -60,6 +72,7 @@ public class Sharkfin {
 
         // SETTING LOOPS
 
+        // PID slot 0: Normal movement
         left.config_kP(0, lead_kp);
         left.config_kI(0, lead_ki);
         left.config_IntegralZone(0, lead_iz);
@@ -67,11 +80,14 @@ public class Sharkfin {
         rght.config_kI(0, lead_ki);
         rght.config_IntegralZone(0, lead_iz);
 
-        // Setting Motion Magic
-        left.configMotionAcceleration(24000);
-        left.configMotionCruiseVelocity(8000);
-        rght.configMotionAcceleration(24000);
-        rght.configMotionCruiseVelocity(8000);  
+        // PID slot 1: pull very hard
+        left.config_kP(1, pull_kp);
+        left.config_kI(1, pull_ki);
+        rght.config_kP(1, pull_kp);
+        rght.config_kI(1, pull_ki);
+        left.config_kF(1, pull_kf);
+        rght.config_kF(1, pull_kf);
+ 
 
         // Setting up limit switches
         left.configForwardLimitSwitchSource(LimitSwitchSource.FeedbackConnector, 
@@ -94,6 +110,11 @@ public class Sharkfin {
         // rght.configStatorCurrentLimit(
         //     new StatorCurrentLimitConfiguration(true,25,35,1.0));
 
+        left.configMotionAcceleration(normalAccel);
+        left.configMotionCruiseVelocity(normalCruise);
+        rght.configMotionAcceleration(normalAccel);
+        rght.configMotionCruiseVelocity(normalCruise); 
+
 
         // Setting Up Limits
         left.configForwardSoftLimitEnable(true);
@@ -111,27 +132,72 @@ public class Sharkfin {
         left.setNeutralMode(NeutralMode.Brake);
 
         // Telling the controllers to follow these loops
-        rght.selectProfileSlot(0, 0);
-        left.selectProfileSlot(0, 0);
+        
 
     }
-
+    int last_status;
     public void shark_initial() {
+        last_status = 0;
 
         left.set(ControlMode.PercentOutput, 0);
         rght.set(ControlMode.PercentOutput, 0);
 
+        setpoint = left.getSelectedSensorPosition();
     }
 
     public boolean safety = true;
     // Safety should ALWAYS be true. The only time it is false is if the 
     // drive system does not have the power.
-    int last_status = 0;
+ 
 
     public void sharkPeriodic(double in_set, int status){
     //setpoint - the setpoint for the position. -1 to 1 mapped to 0 to 90k
     //  Statuses are below
 
+        // If we change statuses
+        if (last_status != status) {
+            switch (status) {
+
+            case 1:
+                // Shifting to hold where it is at
+                setpoint = left.getSelectedSensorPosition();
+                break;
+
+            case 5:
+                // Switch all our loops and variables
+
+                // Vel Motion Profile
+                rght.selectProfileSlot(1, 0);
+                left.selectProfileSlot(1, 0);
+
+                left.configMotionAcceleration(pullAccel);
+                left.configMotionCruiseVelocity(pullCruise);
+                rght.configMotionAcceleration(pullAccel);
+                rght.configMotionCruiseVelocity(pullCruise); 
+
+                rght.configMotionSCurveStrength(4);
+                left.configMotionSCurveStrength(4);
+
+
+            }
+
+            switch (last_status) {
+
+            case 5: /// go back to our normal loops and profiling
+
+                rght.selectProfileSlot(0, 0);
+                left.selectProfileSlot(0, 0);
+
+                left.configMotionAcceleration(normalAccel);
+                left.configMotionCruiseVelocity(normalCruise);
+                rght.configMotionAcceleration(normalAccel);
+                rght.configMotionCruiseVelocity(normalCruise); 
+
+            }
+            
+
+
+        }
 
         switch (status) {
 
@@ -142,12 +208,16 @@ public class Sharkfin {
                 break;
 
             case 2: // moving to specific position, in_set
+                rght.selectProfileSlot(0, 0);
+                left.selectProfileSlot(0, 0);
                 setpoint = remap(in_set);
                 left.set(ControlMode.MotionMagic, setpoint);
                 rght.set(ControlMode.MotionMagic, setpoint);
                 break;
 
             case 3: // Adjusting by the manual control up
+                rght.selectProfileSlot(0, 0);
+                left.selectProfileSlot(0, 0);    
                 setpoint = remap(SAFETY_BLOCK * 1);
                 left.set(ControlMode.MotionMagic, setpoint);
                 rght.set(ControlMode.MotionMagic, setpoint);
@@ -155,7 +225,16 @@ public class Sharkfin {
                 
 
             case 4: // Adjusting by the manual control down
+                rght.selectProfileSlot(0, 0);
+                left.selectProfileSlot(0, 0);    
                 setpoint = remap(SAFETY_BLOCK * -1);
+                left.set(ControlMode.MotionMagic, setpoint);
+                rght.set(ControlMode.MotionMagic, setpoint);
+                break;
+
+            case 5: // PID Loop 1: pull very hard
+
+                setpoint = remap(-0.9);
                 left.set(ControlMode.MotionMagic, setpoint);
                 rght.set(ControlMode.MotionMagic, setpoint);
                 break;
@@ -167,10 +246,7 @@ public class Sharkfin {
 
         }
     
-        // Shifting to hold where it is at
-        if (last_status != status && status == 1) {
-            setpoint = left.getSelectedSensorPosition();
-        }
+
 
         last_status = status;
 

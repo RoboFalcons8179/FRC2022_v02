@@ -110,7 +110,7 @@ public class Robot extends TimedRobot {
   public void teleopInit() {
 
 	// vroom.vel_initalize();
-	// fin.shark_initial();
+	fin.shark_initial();
 	// chop.arm_init();
 
 
@@ -147,6 +147,7 @@ boolean home_arm = false;
 	// Buttons
 	boolean fin_adj_up = (xbox_0.getPOV() == 0);
 	boolean fin_adj_down = (xbox_0.getPOV() == 180);
+	boolean fin_pull = (xbox_0.getRawButton(8));
 	boolean fin_home = false;
 
 	if (xbox_0.getRawButton(2)) {
@@ -155,7 +156,7 @@ boolean home_arm = false;
 	}
 	if (xbox_0.getRawButton(3)) {
 		fin_set_point = true;
-		fin_set = .85;
+		fin_set = .95;
 	}
 	if (xbox_0.getRawButton(4)) {
 		fin_set_point = true;
@@ -176,6 +177,9 @@ boolean home_arm = false;
 	} else 
 	if (fin_home){
 		fin_status = -1;
+	} else 
+	if (fin_pull){
+		fin_status = 5;
 	} else {
 		fin_status = 1;
 	}

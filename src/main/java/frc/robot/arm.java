@@ -41,18 +41,32 @@ public class arm {
 
 
     // constants for the loop
-    private final double kp = 0.00005;
-    private final double ki = 0.0000;
-    private final double kd = 0;
-    private final double iz = 1000;
+
+    private final double u_mmVel = 10000;
+    private final double u_kp = 0.00005;
+    private final double u_ki = 0.0000;
+    private final double u_kd = 0;
+    private final double u_iz = 1000;
+    private final double u_kf = 1023/u_mmVel;
+    private final double u_mmAcc = u_mmVel * 3;
+
+    private final double d_mmVel = 10000;
+    private final double d_kp = 0.00005;
+    private final double d_ki = 0.0000;
+    private final double d_kd = 0;
+    private final double d_iz = 1000;
+    private final double d_kf = 1023/d_mmVel;
+
+    private final double n_kp = 0.00005;
+    private final double n_ki = 0.0000;
+    private final double n_kd = 0;
+    private final double n_iz = 1000;
+
     private final double err = 1000;
-    private final double mmVel = 10000;
-    private final double mmAcc = mmVel * 3;
     private final int s_curve = 3;    
-    private final double kf = 1023/mmVel;
-
-
-    private int slotID = 0;
+    private final int neutralID = 0;
+    private final int upslotID = 1;
+    private final int downslotID = 2;
 
 
     // Calculated constants
@@ -100,18 +114,31 @@ public class arm {
         left_arm.setNeutralMode(NeutralMode.Brake);
         right_arm.setNeutralMode(NeutralMode.Brake);
 
-        left_arm.config_kP(slotID, kp);
-        left_arm.config_kI(slotID, ki);
-        left_arm.config_kD(slotID, kd);
-        left_arm.config_kF(slotID, kf);
-        left_arm.config_IntegralZone(slotID, iz);
-        left_arm.configMotionCruiseVelocity(mmVel);
-        left_arm.configMotionAcceleration(mmAcc);
+        left_arm.config_kP(upslotID, u_kp);
+        left_arm.config_kI(upslotID, u_ki);
+        left_arm.config_kD(upslotID, u_kd);
+        left_arm.config_kF(upslotID, u_kf);
+        left_arm.config_IntegralZone(upslotID, u_iz);
+
+        left_arm.config_kP(downslotID, d_kp);
+        left_arm.config_kI(downslotID, d_ki);
+        left_arm.config_kD(downslotID, d_kd);
+        left_arm.config_kF(downslotID, d_kf);
+        left_arm.config_IntegralZone(downslotID, d_iz);
+
+        left_arm.config_kP(neutralID, n_kp);
+        left_arm.config_kI(neutralID, n_ki);
+        left_arm.config_kD(neutralID, n_kd);
+        left_arm.config_kF(neutralID, 0);
+        left_arm.config_IntegralZone(neutralID, n_iz);
+        
+        // left_arm.configMotionCruiseVelocity(mmVel);
+        // left_arm.configMotionAcceleration(mmAcc);
         left_arm.configMotionSCurveStrength(s_curve);
-        left_arm.configAllowableClosedloopError(slotID, err, 1);
+        left_arm.configAllowableClosedloopError(upslotID, err, 1);
         
 
-        left_arm.selectProfileSlot(slotID, 0); // Primary loop
+        left_arm.selectProfileSlot(upslotID, 0); // Primary loop
 
 
         // Current Limits
@@ -143,43 +170,45 @@ public class arm {
         setSetpointSU(1000);
     }
 
-    // public void arm_Periodic(double in_set, int status, boolean sticky) {
+    public void arm_Periodic(double in_set, int status, boolean sticky) {
     //     // if mode is true, we are going to be using position control
     //     // if home is true, this is going to home.
 
 
 
-    //     switch (status) {
+            switch (status) {
 
-    //         case 1: // holding position
+             case 1: // holding position
 
 
-    //             // Set up hold loop
+                 // Set up hold loop
 
-    //             break;
+                 break;
 
-    //         case 2: // moving up to specific position
+             case 2: // moving up to specific position
 
-    //             left_arm.selectProfileSlot(UP_SLOT, 0);
+                 left_arm.selectProfileSlot(upslotID, 0);
                 
-    //             break;
+                 break;
 
-    //         case 3: // moving down to specific position
+             case 3: // moving down to specific position
 
-    //             left_arm.selectProfileSlot(DOWN_SLOT, 0);
+                 left_arm.selectProfileSlot(downslotID, 0);
+                 break;
 
 
-    //         case -1:
-    //             // Homing the arms
-    //             left_arm.set(ControlMode.PercentOutput, homePWM);
-    //             right_arm.set(ControlMode.Follower, left_arm.getDeviceID());
-    //             setSetpointSU(left_arm.getSelectedSensorPosition());
-    //             break; 
+             case -1:
+                 // Homing the arms
+                 left_arm.set(ControlMode.PercentOutput, homePWM);
+                 right_arm.set(ControlMode.Follower, left_arm.getDeviceID());
+                 setSetpointSU(left_arm.getSelectedSensorPosition());
+                 break; 
 
-    //         default:
-    //             left_arm.set(ControlMode.PercentOutput, 0);
-    //             break;
-    //     }
+             default:
+                 left_arm.set(ControlMode.PercentOutput, 0);
+                 break;
+            }//delete this bracket if the block under this is de-noted.
+        }
 
 
 
