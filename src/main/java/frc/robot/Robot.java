@@ -53,7 +53,8 @@ public class Robot extends TimedRobot {
 
 	// JOYSTICKS
 	private static Joystick xbox_0 = new Joystick(0);
-
+	private static Joystick xbox_1 = new Joystick(1);
+	
 	// MOTION SYSTEMS
 	private static Velocity vroom = new Velocity(leftDrive, rightDrive, leftFollow, rightFollow, MAX_SPEED);
 	private static Sharkfin fin = new Sharkfin(right_shark, left_shark);
@@ -79,8 +80,8 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
 
-	// chop.findArbFB();
-	// chop.updateSD();
+	chop.findArbFB();
+	chop.updateSD();
 
 
 	updateSB_Periodic();
@@ -111,7 +112,7 @@ public class Robot extends TimedRobot {
 
 	// vroom.vel_initalize();
 	fin.shark_initial();
-	// chop.arm_init();
+	chop.arm_init();
 
 
 
@@ -122,7 +123,12 @@ double speed;
 double rot;
 double fin_set;
 int fin_status;
-double arm_set = 1000;
+
+double current_arm_set = 0;
+int arm_cmd = 0;
+double arm_lock_pos = 0;
+boolean arm_sticky = true;
+
 boolean home_arm = false;
 
   /** This function is called periodically during operator control. */
@@ -141,27 +147,27 @@ boolean home_arm = false;
 	// fin_set = setFinsNetwork.getDouble(1.0);
 //////////
 	
+///// VELOCITY
+	speed = xbox_0.getRawAxis(1) * -1;
+	rot = xbox_0.getRawAxis(4);
 
 
 ///// FINS
 	// Buttons
 	boolean fin_adj_up = (xbox_0.getPOV() == 0);
 	boolean fin_adj_down = (xbox_0.getPOV() == 180);
-	boolean fin_pull = (xbox_0.getRawButton(8));
+	boolean fin_pull = (xbox_1.getRawButton(8));
 	boolean fin_home = false;
 
-	if (xbox_0.getRawButton(2)) {
-		fin_set_point = true;
-		fin_set = 0;
-	}
-	if (xbox_0.getRawButton(3)) {
+	if (xbox_1.getRawButton(2)) {
 		fin_set_point = true;
 		fin_set = .95;
 	}
-	if (xbox_0.getRawButton(4)) {
+	if (xbox_1.getRawButton(1)) {
 		fin_set_point = true;
 		fin_set = -.85;
 	}
+
 
 
 ///////////////////// Turning booleans into system commands
@@ -185,6 +191,41 @@ boolean home_arm = false;
 	}
 
 
+		/////// ARM //////////
+
+		double armset = current_arm_set;
+
+		if (xbox_1.getRawButton(6)) { // up
+			
+			arm_cmd = 4;
+			armset = 0;
+			arm_sticky = true;
+	
+		} else 
+		if (xbox_1.getRawButton(5)){ // down
+
+			arm_cmd = 5;
+			armset = -20;
+			arm_sticky = false;
+
+		} else
+		if (xbox_1.getRawAxis(2) > 0.2){
+
+			armset = xbox_1.getRawAxis(2) * -1;
+			arm_cmd = 3;
+ 
+		} else
+		if (xbox_1.getRawAxis(3) > 0.2) {
+			armset = xbox_1.getRawAxis(3);
+			arm_cmd = 3;
+		}
+		else {
+			
+			armset = chop.getCurrentPositionDG();
+			arm_cmd = 1;
+			arm_sticky = false;
+		} 
+
 	vroom.velPeriodic(speed, rot, true, true, false, xbox_0.getRawButton(5), xbox_0.getRawButton(6));
 	// Velocity Drive args in order:
 		// speed in range [-1,1]
@@ -205,13 +246,11 @@ boolean home_arm = false;
 		// 3: Move fins up
 		// 4: move fins down
 
-	// chop.arm_Periodic(arm_set, 0, true, home_arm);
+	chop.arm_Periodic(armset, arm_cmd);
 	// Arm args in order:
-		// Setpoint in Sensor Units, 
-		// Manual move value (1 move up, 0 hold, -1 move down)
-		// Mode: Bool, true for position control and using setpoint,
-		//		false for using the arb pwm (adjust)
-		// home: Bool, override all for homing to the lowered position.
+		// Setpoint in ANGLE Units, 
+		// States
+		// Bool: do you want that arm to travel directly to that position
 
 
 
@@ -280,13 +319,18 @@ boolean home_arm = false;
 		SmartDashboard.putBoolean("fin left for limit SW", left_shark.isFwdLimitSwitchClosed() == 1);
 		SmartDashboard.putBoolean("fin rght for limit SW", right_shark.isFwdLimitSwitchClosed() == 1);
 
-		// SmartDashboard.putNumber("Arm Set Angle", chop.set_out);
-		// SmartDashboard.putNumber("Arm Grav Correction", chop.aux);
-		// SmartDashboard.putNumber("Arm Current L Angle", chop.Langle);
-		// SmartDashboard.putNumber("Arm Current R Angle", chop.Rangle);
-		// SmartDashboard.putNumber("Arm L Current", chop.Lcurr);
-		// SmartDashboard.putNumber("Arm R Current", chop.Lcurr);
+		SmartDashboard.putBoolean("shark left rev limit SW", left_chop.isRevLimitSwitchClosed() == 1);
+		SmartDashboard.putBoolean("shark rght rev limit SW", right_chop.isRevLimitSwitchClosed() == 1);
+		SmartDashboard.putBoolean("shark left fwd limit SW", left_chop.isFwdLimitSwitchClosed() == 1);
+		SmartDashboard.putBoolean("shark rght fwd limit SW", right_chop.isFwdLimitSwitchClosed() == 1);
 
+		SmartDashboard.putNumber("Arm Set Angle", chop.set_out);
+		SmartDashboard.putNumber("Arm Grav Correction", chop.aux);
+		SmartDashboard.putNumber("Arm Current L Angle", chop.Langle);
+		SmartDashboard.putNumber("Arm Current R Angle", chop.Rangle);
+		SmartDashboard.putNumber("Arm L Current", chop.Lcurr);
+		SmartDashboard.putNumber("Arm R Current", chop.Lcurr);
+		SmartDashboard.putNumber("Grav Comp", chop.getArbOut());
 
 	}
 }

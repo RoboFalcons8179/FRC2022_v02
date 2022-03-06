@@ -1,5 +1,7 @@
 package frc.robot;
 
+import javax.swing.FocusManager;
+
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
 import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
@@ -17,7 +19,7 @@ public class Sharkfin {
     // Setting up the lead controller. Make it sharp.
     private double lead_kp = 0.4;
     private double lead_ki = 0.0001;
-    private double pull_kp = 0.05;
+    private double pull_kp = 0.5;
     private double pull_ki = 0.0001;
     private double pull_kf = 5;
     private double lead_iz = 0; //Sensor units
@@ -44,7 +46,7 @@ public class Sharkfin {
     int normalAccel = 24000;
     int normalCruise = 6000;
 
-    int pullCruise = 450;
+    int pullCruise = 500;
     int pullAccel = 3*pullCruise;
   
 
@@ -95,10 +97,10 @@ public class Sharkfin {
         left.configReverseLimitSwitchSource(LimitSwitchSource.FeedbackConnector, 
             LimitSwitchNormal.NormallyOpen);
 
-        rght.configForwardLimitSwitchSource(RemoteLimitSwitchSource.RemoteTalon, 
-            LimitSwitchNormal.NormallyOpen, masterID);
-        rght.configReverseLimitSwitchSource(RemoteLimitSwitchSource.RemoteTalon, 
-            LimitSwitchNormal.NormallyOpen, masterID);
+        rght.configForwardLimitSwitchSource(LimitSwitchSource.FeedbackConnector, 
+            LimitSwitchNormal.NormallyOpen);
+        rght.configReverseLimitSwitchSource(LimitSwitchSource.FeedbackConnector, 
+            LimitSwitchNormal.NormallyOpen);
 
         // // Current Limits
         // left.configSupplyCurrentLimit(
@@ -175,8 +177,8 @@ public class Sharkfin {
                 rght.configMotionAcceleration(pullAccel);
                 rght.configMotionCruiseVelocity(pullCruise); 
 
-                rght.configMotionSCurveStrength(4);
-                left.configMotionSCurveStrength(4);
+                rght.configMotionSCurveStrength(7);
+                left.configMotionSCurveStrength(7);
 
 
             }
@@ -234,10 +236,14 @@ public class Sharkfin {
 
             case 5: // PID Loop 1: pull very hard
 
-                setpoint = remap(-0.9);
+                setpoint = remap(-1);
                 left.set(ControlMode.MotionMagic, setpoint);
                 rght.set(ControlMode.MotionMagic, setpoint);
                 break;
+
+            case -1: // Home
+                left.set(ControlMode.PercentOutput, homePWM);
+                rght.set(ControlMode.PercentOutput, homePWM);
            
             default: // Off
                 left.set(ControlMode.PercentOutput, 0);
