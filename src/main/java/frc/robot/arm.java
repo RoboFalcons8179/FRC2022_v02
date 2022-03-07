@@ -31,15 +31,16 @@ public class arm {
     // constants for the arm position
     private final double lower_deg = -37.8;
     private final double upper_deg = 26.;
-    private final double max_sensor = 80000;
     private final double min_sensor = 0;
+    private final double max_sensor_balls = 60000;
+    private final double max_sensor = 80000;
 
         // Calculating A, can find empirically
         //rather than physics-ly
     // private final double maxTorque = 56;
     // private final double stallTorque = 4.6;
     // private final double gearRatio = 6.4*3*9;
-    private final double A = 0.068;
+    private final double A = 0.07;
 
 
     // Band for Swapping loops
@@ -47,13 +48,13 @@ public class arm {
 
     // constants for the loop
 
-    private final double u_mmVel = 10000;
-    private final double u_kp = 0.00005;
-    private final double u_ki = 0.0000;
+    private final double u_mmVel = 6000;
+    private final double u_kp = 0.05;
+    private final double u_ki = 0.00001;
     private final double u_kd = 0;
-    private final double u_iz = 1000;
-    private final double u_kf = 1023*0.4/u_mmVel;
-    private final double u_mmAcc = u_mmVel * 3;
+    private final double u_iz = 0;
+    private final double u_kf = 0.09;
+    private final double u_mmAcc = u_mmVel * 2;
 
     private final double d_mmVel = 10000;
     private final double d_kp = 0.00005;
@@ -81,7 +82,6 @@ public class arm {
 
     // The position setpoint, can only be accessed by the functions.
     private static double setpoint;
-    private static double lockpoint;
 
     // SmartDashBoard Things
     public double Langle, Rangle;
@@ -143,24 +143,23 @@ public class arm {
         left_arm.config_kF(neutralID, 0);
         left_arm.config_IntegralZone(neutralID, n_iz);
         
-        // left_arm.configMotionCruiseVelocity(mmVel);
-        // left_arm.configMotionAcceleration(mmAcc);
+        left_arm.configMotionCruiseVelocity(u_mmVel);
+        left_arm.configMotionAcceleration(u_mmAcc);
         left_arm.configMotionSCurveStrength(s_curve);
-        left_arm.configAllowableClosedloopError(upslotID, err, 1);
         
 
         left_arm.selectProfileSlot(upslotID, 0); // Primary loop
 
 
         // Current Limits
-        left_arm.configSupplyCurrentLimit(
-            new SupplyCurrentLimitConfiguration(true,25,35,1.0));
-        right_arm.configSupplyCurrentLimit(
-            new SupplyCurrentLimitConfiguration(true,25,35,1.0));
-        left_arm.configStatorCurrentLimit(
-            new StatorCurrentLimitConfiguration(true,25,35,1.0));
-        right_arm.configStatorCurrentLimit(
-            new StatorCurrentLimitConfiguration(true,25,35,1.0));
+        // left_arm.configSupplyCurrentLimit(
+        //     new SupplyCurrentLimitConfiguration(true,25,35,1.0));
+        // right_arm.configSupplyCurrentLimit(
+        //     new SupplyCurrentLimitConfiguration(true,25,35,1.0));
+        // left_arm.configStatorCurrentLimit(
+        //     new StatorCurrentLimitConfiguration(true,25,35,1.0));
+        // right_arm.configStatorCurrentLimit(
+        //     new StatorCurrentLimitConfiguration(true,25,35,1.0));
 
         // left_arm.configForwardSoftLimitThreshold(max_sensor - 3000);
         // left_arm.configReverseSoftLimitThreshold(min_sensor + 1000);
@@ -192,9 +191,17 @@ public class arm {
         right_arm.setSelectedSensorPosition(0);
 
         setSetpointSU(0);
+        lastSticky = true;
     }
+ 
+    public int status;
 
-    public void arm_Periodic(double in_set, int command) {
+    private static double lockpoint;
+    private int lastCommand = 0;
+    private boolean lastSticky = true;
+
+
+    public void arm_Periodic(double in_set, int command, boolean sticky) {
         // Command: 0 - Off
         // Command: 1 - Float
         // Command: 2 - Position Control
@@ -202,18 +209,26 @@ public class arm {
         // Command: 4 - Adjust Up
         // Command: 5 - Adjust Down
         // Command: -1 - Home
-        
+        // Command: 10: Float in Position Control, default
+
+
+        if (command == 10) {
+            setSetpointSU(lockpoint);
+        } else
+        if (sticky) {
+            lockpoint = setpoint;
+        }
+
+        status = 0;
 
         findArbFB();
-
-        int status = 0;
         double current_pos = left_arm.getSelectedSensorPosition();
 
-        boolean tooHigh = current_pos > setpoint + loopZone;
-        boolean tooLow = current_pos < setpoint - loopZone;
-
         if (command == 2) {
-            setSetpointDeg(in_set);
+
+            setSetpointSU(in_set);
+            boolean tooHigh = current_pos > setpoint + loopZone;
+            boolean tooLow = current_pos < setpoint - loopZone;
 
             if (!tooHigh && !tooLow) { // holding
                 status = 1;
@@ -226,6 +241,9 @@ public class arm {
             }
             
         } else 
+        if (command == 10) {
+            status = 1;
+        }
         if (command == 0) { // turn off
             status = 99;
         } else
@@ -255,7 +273,7 @@ public class arm {
                 
 
             case 1: // holding position
-                left_arm.selectProfileSlot(neutralID, 0);
+                left_arm.selectProfileSlot(upslotID, 0);
                 
                 // Set up hold loop
 
@@ -273,7 +291,7 @@ public class arm {
 
             case 3: // moving down to specific position
 
-                left_arm.selectProfileSlot(downslotID, 0);
+                left_arm.selectProfileSlot(upslotID, 0);
                 left_arm.set(ControlMode.MotionMagic, setpoint, DemandType.ArbitraryFeedForward, ArbFeedback);
                 right_arm.set(ControlMode.Follower, left_arm.getDeviceID());
                 break;
@@ -281,15 +299,24 @@ public class arm {
             case 4: // RAW OPEN LOOP - DANGEROUS
                 left_arm.set(ControlMode.PercentOutput, in_set, DemandType.ArbitraryFeedForward, ArbFeedback);
                 right_arm.set(ControlMode.Follower, left_arm.getDeviceID());
+                if (sticky) {
+                    lockpoint = getCurrentPositionSU();
+                }
                 break;
 
             case 5: // Adjust set up
                 left_arm.set(ControlMode.PercentOutput, kUpAdjustMax, DemandType.ArbitraryFeedForward, ArbFeedback);
                 right_arm.set(ControlMode.Follower, left_arm.getDeviceID());
+                if (sticky) {
+                    lockpoint = getCurrentPositionSU();
+                }
                 break; 
             case 6: // adjust set down
                 left_arm.set(ControlMode.PercentOutput, kDnAdjustMax, DemandType.ArbitraryFeedForward, ArbFeedback);
                 right_arm.set(ControlMode.Follower, left_arm.getDeviceID());
+                if (sticky) {
+                    lockpoint = getCurrentPositionSU();
+                }
                 break;  
             case -1:
                 // Homing the arms
@@ -297,15 +324,18 @@ public class arm {
                 right_arm.set(ControlMode.Follower, left_arm.getDeviceID());
 
                 if (left_arm.isRevLimitSwitchClosed()==1 && right_arm.isRevLimitSwitchClosed()==1)
-                    left_arm.setSelectedSensorPosition(0);
-                    setSetpointSU(0);
+                left_arm.setSelectedSensorPosition(0);
+                right_arm.setSelectedSensorPosition(0);
+                setSetpointSU(0);
 
                 break; 
 
              default:
                  left_arm.set(ControlMode.PercentOutput, 0);
+                 right_arm.set(ControlMode.PercentOutput, 0);
                  break;
             }
+
         }
 
     public void findArbFB() {
@@ -317,6 +347,16 @@ public class arm {
 
     }
 
+    public void currentLimitSwitch(boolean on) {
+        left_arm.configSupplyCurrentLimit(
+            new SupplyCurrentLimitConfiguration(on,25,35,1.0));
+        right_arm.configSupplyCurrentLimit(
+            new SupplyCurrentLimitConfiguration(on,25,35,1.0));
+        left_arm.configStatorCurrentLimit(
+            new StatorCurrentLimitConfiguration(on,25,35,1.0));
+        right_arm.configStatorCurrentLimit(
+            new StatorCurrentLimitConfiguration(on,25,35,1.0));
+    }
     // conversion functions. remember line formula (x-x1)k = (y-y1)
 
     public void setSetpointDeg(double in) {

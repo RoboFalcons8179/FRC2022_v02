@@ -1,7 +1,5 @@
 package frc.robot;
 
-import javax.swing.FocusManager;
-
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
 import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
@@ -43,11 +41,11 @@ public class Sharkfin {
     public double setpoint;
     private double SAFETY_BLOCK = 0.85;
 
-    int normalAccel = 24000;
-    int normalCruise = 6000;
+    int normalAccel = 40000;
+    int normalCruise = 15000;
 
-    int pullCruise = 500;
-    int pullAccel = 3*pullCruise;
+    int pullCruise = 2000;
+    int pullAccel = 8000;
   
 
 
@@ -118,22 +116,21 @@ public class Sharkfin {
         rght.configMotionCruiseVelocity(normalCruise); 
 
 
-        // Setting Up Limits
-        left.configForwardSoftLimitEnable(true);
-        rght.configForwardSoftLimitEnable(true);
-        left.configForwardSoftLimitThreshold(105000);
-        rght.configForwardSoftLimitThreshold(105000);
+        // Setting Up Software Limits
+        // left.configForwardSoftLimitEnable(true);
+        // rght.configForwardSoftLimitEnable(true);
+        // left.configForwardSoftLimitThreshold(105000);
+        // rght.configForwardSoftLimitThreshold(105000);
    
-        left.configReverseSoftLimitEnable(true);
-        rght.configReverseSoftLimitEnable(true);
-        left.configReverseSoftLimitThreshold(3000);
-        rght.configReverseSoftLimitThreshold(3000);
+        // left.configReverseSoftLimitEnable(true);
+        // rght.configReverseSoftLimitEnable(true);
+        // left.configReverseSoftLimitThreshold(3000);
+        // rght.configReverseSoftLimitThreshold(3000);
 
         // Brake Modes - might need to change based on game.
+
         rght.setNeutralMode(NeutralMode.Brake);
         left.setNeutralMode(NeutralMode.Brake);
-
-        // Telling the controllers to follow these loops
         
 
     }
@@ -158,6 +155,34 @@ public class Sharkfin {
 
         // If we change statuses
         if (last_status != status) {
+            
+            switch (last_status) {
+
+                case 5: /// go back to our normal loops and profiling
+    
+                    rght.selectProfileSlot(0, 0);
+                    left.selectProfileSlot(0, 0);
+    
+                    left.configMotionAcceleration(normalAccel);
+                    left.configMotionCruiseVelocity(normalCruise);
+                    rght.configMotionAcceleration(normalAccel);
+                    rght.configMotionCruiseVelocity(normalCruise); 
+                    break;
+                
+                case 6: /// go back to our normal loops and profiling
+    
+                    rght.selectProfileSlot(0, 0);
+                    left.selectProfileSlot(0, 0);
+
+                    left.configMotionAcceleration(normalAccel);
+                    left.configMotionCruiseVelocity(normalCruise);
+                    rght.configMotionAcceleration(normalAccel);
+                    rght.configMotionCruiseVelocity(normalCruise); 
+                    break;
+
+            }
+            
+            
             switch (status) {
 
             case 1:
@@ -179,22 +204,20 @@ public class Sharkfin {
 
                 rght.configMotionSCurveStrength(7);
                 left.configMotionSCurveStrength(7);
+                
+                break;
+            case 6:
+                rght.selectProfileSlot(1, 0);
+                left.selectProfileSlot(1, 0);
 
+                left.configMotionAcceleration(pullAccel);
+                left.configMotionCruiseVelocity(pullCruise);
+                rght.configMotionAcceleration(pullAccel);
+                rght.configMotionCruiseVelocity(pullCruise); 
 
-            }
-
-            switch (last_status) {
-
-            case 5: /// go back to our normal loops and profiling
-
-                rght.selectProfileSlot(0, 0);
-                left.selectProfileSlot(0, 0);
-
-                left.configMotionAcceleration(normalAccel);
-                left.configMotionCruiseVelocity(normalCruise);
-                rght.configMotionAcceleration(normalAccel);
-                rght.configMotionCruiseVelocity(normalCruise); 
-
+                rght.configMotionSCurveStrength(7);
+                left.configMotionSCurveStrength(7);
+                break;
             }
             
 
@@ -240,6 +263,12 @@ public class Sharkfin {
                 left.set(ControlMode.MotionMagic, setpoint);
                 rght.set(ControlMode.MotionMagic, setpoint);
                 break;
+            
+            case 6: // Slow move forward
+                setpoint = remap(1);
+                left.set(ControlMode.MotionMagic, setpoint);
+                rght.set(ControlMode.MotionMagic, setpoint);
+                break;
 
             case -1: // Home
                 left.set(ControlMode.PercentOutput, homePWM);
@@ -251,12 +280,8 @@ public class Sharkfin {
                 break;
 
         }
-    
-
 
         last_status = status;
-
-
 
     }
 

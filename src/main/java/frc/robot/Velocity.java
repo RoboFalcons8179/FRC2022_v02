@@ -1,13 +1,10 @@
 package frc.robot;
 
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
 
 import com.ctre.phoenix.motorcontrol.NeutralMode;
-import com.ctre.phoenix.motorcontrol.RemoteSensorSource;
 import com.ctre.phoenix.motorcontrol.StatusFrame;
 import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.FollowerType;
 import com.ctre.phoenix.motorcontrol.TalonSRXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRXConfiguration;
@@ -49,13 +46,19 @@ public class Velocity {
 	public double forwardScale = 1;
 	public double turnScale = 1;
 
+	// This will only matter if the safety is off.
+	private double TRUEMAXSPEED = 1400;
+
+	private boolean safety;
 
     public Velocity( 
         WPI_TalonSRX _leftMasterIn, WPI_TalonSRX _rightMasterIn,
         WPI_VictorSPX _leftFollowIn, WPI_VictorSPX _rightFollowIn,
-		double maxSpeedin) {
+		double maxSpeedin, boolean safety_in) {
         // left master, right master, left follow, right follow, max Speed
-        MAXSPEED = maxSpeedin;
+        
+		MAXSPEED = maxSpeedin;
+		safety = safety_in;
 
         // Bring in Motors
         _leftMaster = _leftMasterIn;
@@ -188,11 +191,11 @@ public class Velocity {
 		_leftMaster.selectProfileSlot(Constants.kSlot_Velocit, Constants.PID_PRIMARY);
 
 
-		// Untested Current Limiting
-		_leftMaster.configPeakCurrentLimit(40, 20);
-		_rightMaster.configPeakCurrentLimit(40, 20);
-		_leftMaster.enableCurrentLimit(true);
-		_rightMaster.enableCurrentLimit(true);
+		// // Untested Current Limiting
+		// _leftMaster.configContinuousCurrentLimit(40, 20);
+		// _rightMaster.configPeakCurrentLimit(40, 20);
+		// _leftMaster.enableCurrentLimit(true);
+		// _rightMaster.enableCurrentLimit(true);
 
     }
 
@@ -211,15 +214,44 @@ public class Velocity {
 
     }
 
-    public void velPeriodic(double speed, double turn, boolean isCheesy, boolean velctl, boolean isQuickTurn, boolean RL, boolean RR) {
+    public void velPeriodic(double speed, double turn, 
+		boolean isCheesy, boolean velctl, boolean isQuickTurn, 
+		boolean RL, boolean RR, double maxPowerF, double maxPowerR) {
 
-		Cheesy.cheesyDrive(speed, turn, isQuickTurn);
 
-		double cheesyLeft = Cheesy.leftSpeed;
-		double cheesyRight = Cheesy.rightSpeed;
+		double cheesyLeft;
+		double cheesyRight;
+		double cheesyLeftVel;
+		double cheesyRightVel;
 
-		double cheesyLeftVel = cheesyLeft*MAXSPEED;
-		double cheesyRightVel = cheesyRight*MAXSPEED;
+		if (maxPowerF > 0.4 && safety == false) { // Max Speed Forward
+
+			Cheesy.cheesyDrive(maxPowerF, turn, isQuickTurn);
+			cheesyLeft = Cheesy.leftSpeed;
+			cheesyRight = Cheesy.rightSpeed;
+			cheesyLeftVel = cheesyLeft*TRUEMAXSPEED;
+			cheesyRightVel = cheesyRight*TRUEMAXSPEED;
+
+		} else 
+		if (maxPowerR > 0.4 && safety == false) { // Max speed Rev
+
+			Cheesy.cheesyDrive(maxPowerR * -1, turn, isQuickTurn);
+			cheesyLeft = Cheesy.leftSpeed;
+			cheesyRight = Cheesy.rightSpeed;
+			cheesyLeftVel = cheesyLeft*TRUEMAXSPEED;
+			cheesyRightVel = cheesyRight*TRUEMAXSPEED;
+
+		}
+		else { // Normal speed
+
+			Cheesy.cheesyDrive(speed, turn, isQuickTurn);
+			cheesyLeft = Cheesy.leftSpeed;
+			cheesyRight = Cheesy.rightSpeed;
+			cheesyLeftVel = cheesyLeft*MAXSPEED;
+			cheesyRightVel = cheesyRight*MAXSPEED;
+
+		}
+
 
 		if (RL) {
 			// Rotate left
@@ -232,16 +264,19 @@ public class Velocity {
 			_leftMaster.set(ControlMode.Velocity, +170);			
 
 		} else if (isCheesy && velctl) {
+			// Cheesy Vel, normal mode
+
 			_rightMaster.set(ControlMode.Velocity, cheesyRightVel); //, DemandType.AuxPID, turn
 			_leftMaster.set(ControlMode.Velocity, cheesyLeftVel);
 		} 
 		else if (isCheesy) {
+			// Cheesy open, backup mode
 			_rightMaster.set(ControlMode.PercentOutput, cheesyRight);
 			_leftMaster.set(ControlMode.PercentOutput, cheesyLeft);
 
 		}
 		else {
-			//open
+			//open, unused
 		}
 		_rightFollow.follow(_rightMaster, FollowerType.PercentOutput);
 		_leftFollow.follow(_leftMaster, FollowerType.PercentOutput);

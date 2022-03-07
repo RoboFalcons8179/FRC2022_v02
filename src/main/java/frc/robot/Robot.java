@@ -5,7 +5,11 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.PowerDistribution;
+
+import java.util.InputMismatchException;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
@@ -35,6 +39,7 @@ public class Robot extends TimedRobot {
 	// SAFETY
 
 	private static final double MAX_SPEED = 400;
+	private static final boolean safety = false;
 
 	// DRIVE MOTORS
 	private static WPI_TalonSRX rightDrive = new WPI_TalonSRX(1);
@@ -52,11 +57,11 @@ public class Robot extends TimedRobot {
 	private static WPI_TalonFX left_chop = new WPI_TalonFX(8);
 
 	// JOYSTICKS
-	private static Joystick xbox_0 = new Joystick(0);
-	private static Joystick xbox_1 = new Joystick(1);
+	private static Joystick xbox_0 = new Joystick(0); // DRIVER
+	private static Joystick xbox_1 = new Joystick(1); // EXECUTIONER
 	
 	// MOTION SYSTEMS
-	private static Velocity vroom = new Velocity(leftDrive, rightDrive, leftFollow, rightFollow, MAX_SPEED);
+	private static Velocity vroom = new Velocity(leftDrive, rightDrive, leftFollow, rightFollow, MAX_SPEED, safety);
 	private static Sharkfin fin = new Sharkfin(right_shark, left_shark);
 	private static arm chop = new arm(left_chop, right_chop);
 
@@ -65,6 +70,7 @@ public class Robot extends TimedRobot {
 	private NetworkTableEntry setSpeedNetwork = data.add("SET SPEED",0).getEntry();
 	private NetworkTableEntry setTurnNetwork = data.add("SET TURN",0).getEntry();
 	private NetworkTableEntry setFinsNetwork = data.add("SET FIN POSITION",0).getEntry();
+	private NetworkTableEntry setArmCurrentSW = data.add("SET ARM CURRENT LIMS",true).getEntry();
 
 	@Override
   	public void robotInit() {
@@ -96,6 +102,7 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
 
+	// Timer.
 
   }
 
@@ -110,7 +117,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
 
-	// vroom.vel_initalize();
+	vroom.vel_initalize();
 	fin.shark_initial();
 	chop.arm_init();
 
@@ -121,6 +128,8 @@ public class Robot extends TimedRobot {
 // Global variables
 double speed;
 double rot;
+boolean vel_ctl = true;
+
 double fin_set;
 int fin_status;
 
@@ -130,6 +139,8 @@ double arm_lock_pos = 0;
 boolean arm_sticky = true;
 
 boolean home_arm = false;
+boolean arm_current_limit = true;
+
 
   /** This function is called periodically during operator control. */
   @Override
@@ -145,23 +156,36 @@ boolean home_arm = false;
 	// speed = setSpeedNetwork.getDouble(1.0);
 	// rot = setTurnNetwork.getDouble(1.0);
 	// fin_set = setFinsNetwork.getDouble(1.0);
+	// chop.currentLimitSwitch(setArmCurrentSW.getBoolean(true));
+
 //////////
 	
 ///// VELOCITY
-	speed = xbox_0.getRawAxis(1) * -1;
+	speed = deadband(xbox_0.getRawAxis(1) * -1);
 	rot = xbox_0.getRawAxis(4);
+	
+	// switching between cheesy open and vel ctl
+	vel_ctl = xbox_0.getRawButtonPressed(1) ? !vel_ctl : vel_ctl;
 
+	// pivot & others
+	boolean pivotL = xbox_0.getRawButton(5); 
+	boolean pivotR = xbox_0.getRawButton(6);
+	boolean handBrake = xbox_0.getRawButtonPressed(4);
+	double MaxPowerFwd = xbox_0.getRawAxis(3);
+	double MaxPowerRev = xbox_0.getRawAxis(3);
 
 ///// FINS
 	// Buttons
-	boolean fin_adj_up = (xbox_0.getPOV() == 0);
-	boolean fin_adj_down = (xbox_0.getPOV() == 180);
+	boolean fin_adj_up = (xbox_1.getPOV() == 0);
+	boolean fin_adj_down = (xbox_1.getPOV() == 180);
 	boolean fin_pull = (xbox_1.getRawButton(8));
+	boolean fin_push = (xbox_1.getRawButton(7));
+	
 	boolean fin_home = false;
 
 	if (xbox_1.getRawButton(2)) {
 		fin_set_point = true;
-		fin_set = .95;
+		fin_set = 1;
 	}
 	if (xbox_1.getRawButton(1)) {
 		fin_set_point = true;
@@ -186,47 +210,74 @@ boolean home_arm = false;
 	} else 
 	if (fin_pull){
 		fin_status = 5;
+	} else 
+	if (fin_push){
+		fin_status = 6;
 	} else {
 		fin_status = 1;
 	}
 
 
-		/////// ARM //////////
+	/////// ARM //////////
 
-		double armset = current_arm_set;
+	double armset = current_arm_set;
 
-		if (xbox_1.getRawButton(6)) { // up
-			
-			arm_cmd = 4;
-			armset = 0;
-			arm_sticky = true;
+	if (xbox_1.getRawButton(6)) { // up
+		
+		arm_cmd = 4;
+		armset = 0;
+		arm_sticky = true;
+
+	} else 
+	if (xbox_1.getRawButton(5)){ // down
+
+		arm_cmd = 5;
+		armset = -20;
+		arm_sticky = true;
+
+	} else	
+	if (xbox_1.getRawButton(3)){ // Setpoint 1
+
+		arm_cmd = 5;
+		armset = chop.remapDegreeToSensor(0);
+		arm_sticky = true;
+
+	} else
+	if (xbox_1.getRawButton(4)){ // Setpoint 2
+
+		arm_cmd = 5;
+		armset = chop.remapDegreeToSensor(-20);
+		arm_sticky = false;
+
+	} else
+	if (xbox_1.getRawAxis(2) > 0.2){
+
+		armset = xbox_1.getRawAxis(2) * -1;
+		arm_cmd = 3;
+		arm_sticky = true;
+
+
+	} else
+	if (xbox_1.getRawAxis(3) > 0.2) {
+		armset = xbox_1.getRawAxis(3);
+		arm_cmd = 3;
+		arm_sticky = true;
+	}
+	else { // Default Hold, command 1 or 10
+		
+		arm_cmd = 10;
+		arm_sticky = false;
+	} 
+
+	// if(xbox_1.getRawButtonPressed(7)) {
+	// 	arm_current_limit = !arm_current_limit;
+	// 	chop.currentLimitSwitch(arm_current_limit);
+	// } 
+
+
 	
-		} else 
-		if (xbox_1.getRawButton(5)){ // down
-
-			arm_cmd = 5;
-			armset = -20;
-			arm_sticky = false;
-
-		} else
-		if (xbox_1.getRawAxis(2) > 0.2){
-
-			armset = xbox_1.getRawAxis(2) * -1;
-			arm_cmd = 3;
- 
-		} else
-		if (xbox_1.getRawAxis(3) > 0.2) {
-			armset = xbox_1.getRawAxis(3);
-			arm_cmd = 3;
-		}
-		else {
-			
-			armset = chop.getCurrentPositionDG();
-			arm_cmd = 1;
-			arm_sticky = false;
-		} 
-
-	vroom.velPeriodic(speed, rot, true, true, false, xbox_0.getRawButton(5), xbox_0.getRawButton(6));
+	///////// ASSIGNING FUNCTONS
+	vroom.velPeriodic(speed, rot, true, vel_ctl, handBrake, pivotL, pivotR, MaxPowerFwd, MaxPowerRev);
 	// Velocity Drive args in order:
 		// speed in range [-1,1]
 		// rotate in range [-1,1]
@@ -234,7 +285,9 @@ boolean home_arm = false;
 		// bool velctl: using velocity control or open loop.
 		// bool cheezy sharp: in cheezy, this will start a sharp turn.
 
-
+		// Helper output vroom functions:
+		xbox_0.setRumble(RumbleType.kLeftRumble, rmbleDBremap(leftDrive.getSupplyCurrent() / 30));
+		xbox_0.setRumble(RumbleType.kRightRumble, rmbleDBremap(rightDrive.getSupplyCurrent() / 30));
 
 	fin.sharkPeriodic(fin_set, fin_status); // fin_set is range [-1,1]
 	// Fin args in order:
@@ -246,11 +299,12 @@ boolean home_arm = false;
 		// 3: Move fins up
 		// 4: move fins down
 
-	chop.arm_Periodic(armset, arm_cmd);
+	chop.arm_Periodic(armset, arm_cmd, arm_sticky);
 	// Arm args in order:
-		// Setpoint in ANGLE Units, 
+		// Setpoint in SENSOR Units, 
 		// States
-		// Bool: do you want that arm to travel directly to that position
+		// Bool sticky: only for position, 
+		// will leave taht as teh setpoint. do not use for Open loop.
 
 
 
@@ -277,7 +331,7 @@ boolean home_arm = false;
 	sing.addInstrument(left_chop);
 	sing.addInstrument(right_chop);
 
-	sing.loadMusic("C:\\Users\\Robotics\\Documents\\FRC2022_v02\\src\\main\\java\\frc\\robot\\take5.chrp");
+	sing.loadMusic("src\\main\\java\\frc\\robot\\take5.chrp");
 	sing.play();
 
 
@@ -292,10 +346,18 @@ boolean home_arm = false;
   }
 
   private double deadband(double d) {
-	if (-0.20 < d && d < 0.20)
+	if (-0.05 < d && d < 0.05)
 		return 0;
 	else
 		return d;
+	}
+
+	private double rmbleDBremap(double input) {
+		if (-0.20 < input && input < 0.20)
+			return 0;
+		else
+			return input * input;
+	
 	}
 
 	private void updateSB_Periodic() {
@@ -305,7 +367,8 @@ boolean home_arm = false;
 		SmartDashboard.putNumber("Velocity Right", rightDrive.getSelectedSensorVelocity(0));
 		SmartDashboard.putNumber("Current Left", leftDrive.getStatorCurrent());
 		SmartDashboard.putNumber("Current Right", rightDrive.getStatorCurrent());
-	
+		SmartDashboard.putBoolean("Vel Ctl Mode", vel_ctl);
+
 		SmartDashboard.putNumber("Drive Speed Error", leftDrive.getSelectedSensorVelocity(1)+rightDrive.getSelectedSensorVelocity(0));
 		
 		
@@ -314,23 +377,39 @@ boolean home_arm = false;
 		SmartDashboard.putNumber("right shark current", right_shark.getStatorCurrent());
 		SmartDashboard.putNumber("left shark current", left_shark.getStatorCurrent());
 
-		SmartDashboard.putBoolean("fin left rev limit SW", left_shark.isRevLimitSwitchClosed() == 1);
-		SmartDashboard.putBoolean("fin rght rev limit SW", right_shark.isRevLimitSwitchClosed() == 1);
-		SmartDashboard.putBoolean("fin left for limit SW", left_shark.isFwdLimitSwitchClosed() == 1);
-		SmartDashboard.putBoolean("fin rght for limit SW", right_shark.isFwdLimitSwitchClosed() == 1);
 
-		SmartDashboard.putBoolean("shark left rev limit SW", left_chop.isRevLimitSwitchClosed() == 1);
-		SmartDashboard.putBoolean("shark rght rev limit SW", right_chop.isRevLimitSwitchClosed() == 1);
-		SmartDashboard.putBoolean("shark left fwd limit SW", left_chop.isFwdLimitSwitchClosed() == 1);
-		SmartDashboard.putBoolean("shark rght fwd limit SW", right_chop.isFwdLimitSwitchClosed() == 1);
+		SmartDashboard.putNumber("Shark CMD", fin_status);
+
+		SmartDashboard.putBoolean("fin left rev limit SW", left_shark.isRevLimitSwitchClosed() == 0);
+		SmartDashboard.putBoolean("fin rght rev limit SW", right_shark.isRevLimitSwitchClosed() == 0);
+		SmartDashboard.putBoolean("fin left for limit SW", left_shark.isFwdLimitSwitchClosed() == 0);
+		SmartDashboard.putBoolean("fin rght for limit SW", right_shark.isFwdLimitSwitchClosed() == 0);
+		SmartDashboard.putNumber("fin L Out", left_shark.getMotorOutputPercent());
+		SmartDashboard.putNumber("fin R Out", right_shark.getMotorOutputPercent());
+
+		SmartDashboard.putBoolean("shark left rev limit SW", left_chop.isRevLimitSwitchClosed() == 0);
+		SmartDashboard.putBoolean("shark rght rev limit SW", right_chop.isRevLimitSwitchClosed() == 0);
+		SmartDashboard.putBoolean("shark left fwd limit SW", left_chop.isFwdLimitSwitchClosed() == 0);
+		SmartDashboard.putBoolean("shark rght fwd limit SW", right_chop.isFwdLimitSwitchClosed() == 0);
 
 		SmartDashboard.putNumber("Arm Set Angle", chop.set_out);
 		SmartDashboard.putNumber("Arm Grav Correction", chop.aux);
+		SmartDashboard.putNumber("Arm L Out", left_chop.getMotorOutputPercent());
+		SmartDashboard.putNumber("Arm R Out", right_chop.getMotorOutputPercent());
 		SmartDashboard.putNumber("Arm Current L Angle", chop.Langle);
 		SmartDashboard.putNumber("Arm Current R Angle", chop.Rangle);
+		SmartDashboard.putNumber("Arm Current Angle SU", chop.getCurrentPositionSU());
+
+		SmartDashboard.putNumber("Arm Command", arm_cmd);
+		SmartDashboard.putNumber("Arm Status", chop.status);		
 		SmartDashboard.putNumber("Arm L Current", chop.Lcurr);
 		SmartDashboard.putNumber("Arm R Current", chop.Lcurr);
 		SmartDashboard.putNumber("Grav Comp", chop.getArbOut());
+
+		SmartDashboard.putNumber("Arm R Temp", left_chop.getTemperature());
+		SmartDashboard.putNumber("Arm L Temp", right_chop.getTemperature());
+
+
 
 	}
 }
