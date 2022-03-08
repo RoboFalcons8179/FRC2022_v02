@@ -9,8 +9,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.PowerDistribution;
 
-import java.util.InputMismatchException;
-
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
@@ -59,6 +57,7 @@ public class Robot extends TimedRobot {
 	// JOYSTICKS
 	private static Joystick xbox_0 = new Joystick(0); // DRIVER
 	private static Joystick xbox_1 = new Joystick(1); // EXECUTIONER
+	private static Joystick gamepad = new Joystick(2); // multi-button fun
 	
 	// MOTION SYSTEMS
 	private static Velocity vroom = new Velocity(leftDrive, rightDrive, leftFollow, rightFollow, MAX_SPEED, safety);
@@ -171,7 +170,7 @@ boolean arm_current_limit = true;
 	boolean pivotL = xbox_0.getRawButton(5); 
 	boolean pivotR = xbox_0.getRawButton(6);
 	boolean handBrake = xbox_0.getRawButtonPressed(4);
-	double MaxPowerFwd = xbox_0.getRawAxis(3);
+	double MaxPowerFwd = xbox_0.getRawAxis(2);
 	double MaxPowerRev = xbox_0.getRawAxis(3);
 
 ///// FINS
@@ -238,14 +237,14 @@ boolean arm_current_limit = true;
 	} else	
 	if (xbox_1.getRawButton(3)){ // Setpoint 1
 
-		arm_cmd = 5;
+		arm_cmd = 2;
 		armset = chop.remapDegreeToSensor(0);
 		arm_sticky = true;
 
 	} else
 	if (xbox_1.getRawButton(4)){ // Setpoint 2
 
-		arm_cmd = 5;
+		arm_cmd = 2;
 		armset = chop.remapDegreeToSensor(-20);
 		arm_sticky = false;
 
@@ -315,7 +314,9 @@ boolean arm_current_limit = true;
 
 /** This function is called once when the robot is disabled. */
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+	  chop.setSetpointSU(0);
+  }
 
   /** This function is called periodically when disabled. */
   @Override

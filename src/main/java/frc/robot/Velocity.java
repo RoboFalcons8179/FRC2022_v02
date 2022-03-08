@@ -224,6 +224,8 @@ public class Velocity {
 		double cheesyLeftVel;
 		double cheesyRightVel;
 
+		speed = Math.pow(speed, 3);
+
 		if (maxPowerF > 0.4 && safety == false) { // Max Speed Forward
 
 			Cheesy.cheesyDrive(maxPowerF, turn, isQuickTurn);
@@ -263,13 +265,17 @@ public class Velocity {
 			_rightMaster.set(ControlMode.Velocity, -170); //, DemandType.AuxPID, turn
 			_leftMaster.set(ControlMode.Velocity, +170);			
 
+		} else if (Math.abs(speed) < 0.001) {
+			// If going slow, set to a static, in place turn (gets rid of absence of turning in CheesyDrive)
+			_rightMaster.set(ControlMode.PercentOutput, -turn/2);
+			_leftMaster.set(ControlMode.PercentOutput, turn/2);
+
 		} else if (isCheesy && velctl) {
 			// Cheesy Vel, normal mode
-
 			_rightMaster.set(ControlMode.Velocity, cheesyRightVel); //, DemandType.AuxPID, turn
 			_leftMaster.set(ControlMode.Velocity, cheesyLeftVel);
-		} 
-		else if (isCheesy) {
+			
+		} else if (isCheesy) {
 			// Cheesy open, backup mode
 			_rightMaster.set(ControlMode.PercentOutput, cheesyRight);
 			_leftMaster.set(ControlMode.PercentOutput, cheesyLeft);

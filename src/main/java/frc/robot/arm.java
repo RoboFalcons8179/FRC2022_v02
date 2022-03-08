@@ -22,7 +22,7 @@ public class arm {
 
     // PWM signals that will let the arm go up.
     // Does not include the ARB Value
-    private final double kUpAdjustMax = 0.4;
+    private final double kUpAdjustMax = 0.2;
     private final double kDnAdjustMax = -0.2;
 
     // PWM for lowering to home.
@@ -187,18 +187,19 @@ public class arm {
 
         right_arm.set(ControlMode.Follower, masterID);
 
-        left_arm.setSelectedSensorPosition(0);
-        right_arm.setSelectedSensorPosition(0);
-
         setSetpointSU(0);
-        lastSticky = true;
+        first = true;
+        left_arm.selectProfileSlot(upslotID, 0);
+
+        arm_Periodic(0, 0, true);
     }
  
     public int status;
 
     private static double lockpoint;
     private int lastCommand = 0;
-    private boolean lastSticky = true;
+    private boolean lastSticky = false;
+    public boolean first;
 
 
     public void arm_Periodic(double in_set, int command, boolean sticky) {
@@ -210,14 +211,20 @@ public class arm {
         // Command: 5 - Adjust Down
         // Command: -1 - Home
         // Command: 10: Float in Position Control, default
-
-
-        if (command == 10) {
-            setSetpointSU(lockpoint);
-        } else
+        
+        if (first) {
+            setSetpointSU(0);
+            sticky = true;
+            first = false;
+        }
         if (sticky) {
             lockpoint = setpoint;
-        }
+        } else
+        if (command == 10) {
+            setSetpointSU(lockpoint);
+        } 
+
+
 
         status = 0;
 
@@ -242,8 +249,8 @@ public class arm {
             
         } else 
         if (command == 10) {
-            status = 1;
-        }
+            status = 1; // Hold Position reguardless of in_set 
+        } else
         if (command == 0) { // turn off
             status = 99;
         } else
@@ -270,10 +277,9 @@ public class arm {
 
                 left_arm.set(ControlMode.PercentOutput, 0, DemandType.ArbitraryFeedForward, ArbFeedback);
                 right_arm.set(ControlMode.Follower, left_arm.getDeviceID());
-                
+                break;
 
             case 1: // holding position
-                left_arm.selectProfileSlot(upslotID, 0);
                 
                 // Set up hold loop
 
@@ -284,14 +290,12 @@ public class arm {
 
             case 2: // moving up to specific position
 
-                left_arm.selectProfileSlot(upslotID, 0);
                 left_arm.set(ControlMode.MotionMagic, setpoint, DemandType.ArbitraryFeedForward, ArbFeedback);
                 right_arm.set(ControlMode.Follower, left_arm.getDeviceID());               
                 break;
 
             case 3: // moving down to specific position
 
-                left_arm.selectProfileSlot(upslotID, 0);
                 left_arm.set(ControlMode.MotionMagic, setpoint, DemandType.ArbitraryFeedForward, ArbFeedback);
                 right_arm.set(ControlMode.Follower, left_arm.getDeviceID());
                 break;
@@ -323,11 +327,12 @@ public class arm {
                 left_arm.set(ControlMode.PercentOutput, homePWM);
                 right_arm.set(ControlMode.Follower, left_arm.getDeviceID());
 
-                if (left_arm.isRevLimitSwitchClosed()==1 && right_arm.isRevLimitSwitchClosed()==1)
-                left_arm.setSelectedSensorPosition(0);
-                right_arm.setSelectedSensorPosition(0);
-                setSetpointSU(0);
-
+                if (left_arm.isRevLimitSwitchClosed()==1 && right_arm.isRevLimitSwitchClosed()==1) {
+                    left_arm.setSelectedSensorPosition(0);
+                    right_arm.setSelectedSensorPosition(0);
+                    setSetpointSU(0);
+                    lockpoint = setpoint;
+                }
                 break; 
 
              default:
