@@ -178,6 +178,10 @@ public class arm {
         right_arm.configReverseLimitSwitchSource(LimitSwitchSource.FeedbackConnector, 
             LimitSwitchNormal.NormallyOpen);
 
+        
+        left_arm.setSelectedSensorPosition(0);
+        right_arm.setSelectedSensorPosition(0);
+
         }
 
     public void arm_init() {
@@ -190,8 +194,6 @@ public class arm {
         setSetpointSU(0);
         first = true;
         left_arm.selectProfileSlot(upslotID, 0);
-
-        arm_Periodic(0, 0, true);
     }
  
     public int status;
@@ -216,6 +218,7 @@ public class arm {
             setSetpointSU(0);
             sticky = true;
             first = false;
+            command = 0;
         }
         if (sticky) {
             lockpoint = setpoint;

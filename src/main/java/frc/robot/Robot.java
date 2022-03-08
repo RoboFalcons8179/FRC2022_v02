@@ -57,8 +57,11 @@ public class Robot extends TimedRobot {
 	// JOYSTICKS
 	private static Joystick xbox_0 = new Joystick(0); // DRIVER
 	private static Joystick xbox_1 = new Joystick(1); // EXECUTIONER
-	private static Joystick gamepad = new Joystick(2); // multi-button fun
-	
+	private static Joystick gamepad0 = new Joystick(2); // multi-button fun
+	private static Joystick gamepad1 = new Joystick(3); // multi-button fun
+	private static Buttons b = new Buttons();
+
+
 	// MOTION SYSTEMS
 	private static Velocity vroom = new Velocity(leftDrive, rightDrive, leftFollow, rightFollow, MAX_SPEED, safety);
 	private static Sharkfin fin = new Sharkfin(right_shark, left_shark);
@@ -120,9 +123,6 @@ public class Robot extends TimedRobot {
 	fin.shark_initial();
 	chop.arm_init();
 
-
-
-
   }
 // Global variables
 double speed;
@@ -170,25 +170,25 @@ boolean arm_current_limit = true;
 	boolean pivotL = xbox_0.getRawButton(5); 
 	boolean pivotR = xbox_0.getRawButton(6);
 	boolean handBrake = xbox_0.getRawButtonPressed(4);
-	double MaxPowerFwd = xbox_0.getRawAxis(2);
-	double MaxPowerRev = xbox_0.getRawAxis(3);
+	double MaxPowerFwd = 0; //xbox_0.getRawAxis(2);
+	double MaxPowerRev = 0; //xbox_0.getRawAxis(3);
 
 ///// FINS
 	// Buttons
 	boolean fin_adj_up = (xbox_1.getPOV() == 0);
 	boolean fin_adj_down = (xbox_1.getPOV() == 180);
-	boolean fin_pull = (xbox_1.getRawButton(8));
-	boolean fin_push = (xbox_1.getRawButton(7));
+	boolean fin_pull = (gamepad0.getRawButton(b.FIS));
+	boolean fin_push = (gamepad0.getRawButton(b.FOS));
 	
 	boolean fin_home = false;
 
-	if (xbox_1.getRawButton(2)) {
+	if (gamepad0.getRawButton(b.FOF)) {
 		fin_set_point = true;
 		fin_set = 1;
 	}
-	if (xbox_1.getRawButton(1)) {
+	if (gamepad0.getRawButton(b.FIF)) {
 		fin_set_point = true;
-		fin_set = -.85;
+		fin_set = -.95;
 	}
 
 
@@ -221,35 +221,35 @@ boolean arm_current_limit = true;
 
 	double armset = current_arm_set;
 
-	if (xbox_1.getRawButton(6)) { // up
+	if (gamepad0.getRawButton(b.MU)) { // up
 		
 		arm_cmd = 4;
 		armset = 0;
 		arm_sticky = true;
 
 	} else 
-	if (xbox_1.getRawButton(5)){ // down
+	if (gamepad0.getRawButton(b.MD)){ // down
 
 		arm_cmd = 5;
 		armset = -20;
 		arm_sticky = true;
 
 	} else	
-	if (xbox_1.getRawButton(3)){ // Setpoint 1
+	// if (xbox_1.getRawButton(3)){ // Setpoint 1
 
-		arm_cmd = 2;
-		armset = chop.remapDegreeToSensor(0);
-		arm_sticky = true;
+	// 	arm_cmd = 2;
+	// 	armset = chop.remapDegreeToSensor(0);
+	// 	arm_sticky = true;
 
-	} else
-	if (xbox_1.getRawButton(4)){ // Setpoint 2
+	// } else
+	// if (xbox_1.getRawButton(4)){ // Setpoint 2
 
-		arm_cmd = 2;
-		armset = chop.remapDegreeToSensor(-20);
-		arm_sticky = false;
+	// 	arm_cmd = 2;
+	// 	armset = chop.remapDegreeToSensor(-20);
+	// 	arm_sticky = false;
 
-	} else
-	if (xbox_1.getRawAxis(2) > 0.2){
+	// } else
+	if (xbox_0.getRawAxis(2) > 0.2){
 
 		armset = xbox_1.getRawAxis(2) * -1;
 		arm_cmd = 3;
@@ -257,12 +257,12 @@ boolean arm_current_limit = true;
 
 
 	} else
-	if (xbox_1.getRawAxis(3) > 0.2) {
+	if (xbox_0.getRawAxis(3) > 0.2) {
 		armset = xbox_1.getRawAxis(3);
 		arm_cmd = 3;
 		arm_sticky = true;
-	}
-	else { // Default Hold, command 1 or 10
+	} else
+	 { // Default Hold, command 1 or 10
 		
 		arm_cmd = 10;
 		arm_sticky = false;
@@ -388,10 +388,10 @@ boolean arm_current_limit = true;
 		SmartDashboard.putNumber("fin L Out", left_shark.getMotorOutputPercent());
 		SmartDashboard.putNumber("fin R Out", right_shark.getMotorOutputPercent());
 
-		SmartDashboard.putBoolean("shark left rev limit SW", left_chop.isRevLimitSwitchClosed() == 0);
-		SmartDashboard.putBoolean("shark rght rev limit SW", right_chop.isRevLimitSwitchClosed() == 0);
-		SmartDashboard.putBoolean("shark left fwd limit SW", left_chop.isFwdLimitSwitchClosed() == 0);
-		SmartDashboard.putBoolean("shark rght fwd limit SW", right_chop.isFwdLimitSwitchClosed() == 0);
+		SmartDashboard.putBoolean("arm left rev limit SW", left_chop.isRevLimitSwitchClosed() == 0);
+		SmartDashboard.putBoolean("arm rght rev limit SW", right_chop.isRevLimitSwitchClosed() == 0);
+		SmartDashboard.putBoolean("arm left fwd limit SW", left_chop.isFwdLimitSwitchClosed() == 0);
+		SmartDashboard.putBoolean("arm rght fwd limit SW", right_chop.isFwdLimitSwitchClosed() == 0);
 
 		SmartDashboard.putNumber("Arm Set Angle", chop.set_out);
 		SmartDashboard.putNumber("Arm Grav Correction", chop.aux);

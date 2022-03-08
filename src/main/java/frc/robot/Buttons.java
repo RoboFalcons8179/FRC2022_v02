@@ -28,6 +28,17 @@ public class Buttons {
     public int xbox_1_r3 = 10;
 
     //SLOT 2: gamepad - numbers heavily up for debate
+    public int FIS = 8;
+    public int FOS = 4;
+    public int FOF = 7;
+    public int FIF = 3;
+
+    public int MU = 12;
+    public int MD = 11;
+    
+    
+    
+    
     public int gamepad_1 = 1;
     public int gamepad_2 = 2;
     public int gamepad_3 = 3;
@@ -40,7 +51,7 @@ public class Buttons {
     public int gamepad_10 = 10;
     public int gamepad_11 = 11;
     public int gamepad_12 = 12;
-    
+
     public int gamepad_13 = 13;
     public int gamepad_14 = 14;
     public int gamepad_15 = 15;
