@@ -165,6 +165,7 @@ boolean arm_current_limit = true;
 	
 	// switching between cheesy open and vel ctl
 	vel_ctl = xbox_0.getRawButtonPressed(1) ? !vel_ctl : vel_ctl;
+	double vel_pov = xbox_0.getPOV();
 
 	// pivot & others
 	boolean pivotL = xbox_0.getRawButton(5); 
@@ -179,8 +180,7 @@ boolean arm_current_limit = true;
 	boolean fin_adj_down = (xbox_1.getPOV() == 180);
 	boolean fin_pull = (gamepad0.getRawButton(b.FIS));
 	boolean fin_push = (gamepad0.getRawButton(b.FOS));
-	
-	boolean fin_home = false;
+	boolean fin_home = gamepad0.getRawButton(b.homeFins);
 
 	if (gamepad0.getRawButton(b.FOF)) {
 		fin_set_point = true;
@@ -262,21 +262,27 @@ boolean arm_current_limit = true;
 		arm_cmd = 3;
 		arm_sticky = true;
 	} else
+	if (gamepad0.getRawButton(b.openArm)) { // open arms
+		armset = 18000;
+		arm_cmd = 2;
+		arm_sticky = false;
+	} else
+	if (gamepad0.getRawButton(b.scoreArms)) {
+		armset = 60000;
+		arm_cmd = 2;
+		arm_sticky = false;
+	} else
 	 { // Default Hold, command 1 or 10
 		
 		arm_cmd = 10;
 		arm_sticky = false;
 	} 
 
-	// if(xbox_1.getRawButtonPressed(7)) {
-	// 	arm_current_limit = !arm_current_limit;
-	// 	chop.currentLimitSwitch(arm_current_limit);
-	// } 
-
+	chop.setHighMode(gamepad1.getRawButton(1));
 
 	
 	///////// ASSIGNING FUNCTONS
-	vroom.velPeriodic(speed, rot, true, vel_ctl, handBrake, pivotL, pivotR, MaxPowerFwd, MaxPowerRev);
+	vroom.velPeriodic(speed, rot, true, vel_ctl, handBrake, pivotL, pivotR, MaxPowerFwd, MaxPowerRev, vel_pov);
 	// Velocity Drive args in order:
 		// speed in range [-1,1]
 		// rotate in range [-1,1]

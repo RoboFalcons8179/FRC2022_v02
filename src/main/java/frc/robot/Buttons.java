@@ -35,10 +35,13 @@ public class Buttons {
 
     public int MU = 12;
     public int MD = 11;
+
+    public int homeFins = 6;
+
+    public int openArm = 10;
+    public int scoreArms = 9;
     
-    
-    
-    
+
     public int gamepad_1 = 1;
     public int gamepad_2 = 2;
     public int gamepad_3 = 3;

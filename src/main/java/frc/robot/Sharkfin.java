@@ -17,16 +17,18 @@ public class Sharkfin {
     // Setting up the lead controller. Make it sharp.
     private double lead_kp = 0.4;
     private double lead_ki = 0.0001;
-    private double pull_kp = 0.5;
-    private double pull_ki = 0.0001;
-    private double pull_kf = 5;
+
+    private double pull_kp = 0.1; //0.5;
+    private double pull_ki =  0; //0.0001;
+    private double pull_kf = 1; //5;
+    private double pull_kd = 1;
     private double lead_iz = 0; //Sensor units
    
     // private double lead_kp = 0.4;
     // private double lead_ki = 0.0000;
     // private double lead_iz = 1000; //Sensor units
 
-    private final double homePWM = -0.1;
+    private final double homePWM = -0.2;
 
     // private double follow_kf = 1;
     // private double follow_kp = 0.000;
@@ -87,6 +89,8 @@ public class Sharkfin {
         rght.config_kI(1, pull_ki);
         left.config_kF(1, pull_kf);
         rght.config_kF(1, pull_kf);
+        left.config_kD(1, pull_kd);
+        rght.config_kD(1, pull_kd);
  
 
         // Setting up limit switches
@@ -273,7 +277,7 @@ public class Sharkfin {
             case -1: // Home
                 left.set(ControlMode.PercentOutput, homePWM);
                 rght.set(ControlMode.PercentOutput, homePWM);
-           
+                break;
             default: // Off
                 left.set(ControlMode.PercentOutput, 0);
                 rght.set(ControlMode.PercentOutput, 0);

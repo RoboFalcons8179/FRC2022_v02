@@ -216,7 +216,9 @@ public class Velocity {
 
     public void velPeriodic(double speed, double turn, 
 		boolean isCheesy, boolean velctl, boolean isQuickTurn, 
-		boolean RL, boolean RR, double maxPowerF, double maxPowerR) {
+		boolean RL, boolean RR, 
+		double maxPowerF, double maxPowerR,
+		double pov) {
 
 
 		double cheesyLeft;
@@ -255,15 +257,21 @@ public class Velocity {
 		}
 
 
-		if (RL) {
+		if (RL || pov == 270) {
 			// Rotate left
 			_rightMaster.set(ControlMode.Velocity, +170); //, DemandType.AuxPID, turn
 			_leftMaster.set(ControlMode.Velocity, -170);	
 
-		} else if (RR) {
+		} else if (RR || pov == 90) {
 			// Rotate right
 			_rightMaster.set(ControlMode.Velocity, -170); //, DemandType.AuxPID, turn
 			_leftMaster.set(ControlMode.Velocity, +170);			
+		}else if (pov == 0) {
+			_rightMaster.set(ControlMode.Velocity, +170); //, DemandType.AuxPID, turn
+			_leftMaster.set(ControlMode.Velocity, +170);		
+		} else if (pov == 180) {
+			_rightMaster.set(ControlMode.Velocity, -170); //, DemandType.AuxPID, turn
+			_leftMaster.set(ControlMode.Velocity, -170);		
 
 		} else if (Math.abs(speed) < 0.001 && Math.abs(turn) > 0.2) {
 			// If going slow, set to a static, in place turn (gets rid of absence of turning in CheesyDrive)

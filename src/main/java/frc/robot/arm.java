@@ -178,9 +178,17 @@ public class arm {
         right_arm.configReverseLimitSwitchSource(LimitSwitchSource.FeedbackConnector, 
             LimitSwitchNormal.NormallyOpen);
 
+        left_arm.configClearPositionOnLimitR(true, 25);
+        right_arm.configClearPositionOnLimitR(true, 25);
         
         left_arm.setSelectedSensorPosition(0);
         right_arm.setSelectedSensorPosition(0);
+
+        left_arm.configForwardSoftLimitThreshold(max_sensor_balls);
+        right_arm.configForwardSoftLimitThreshold(max_sensor_balls);
+        
+        left_arm.configForwardSoftLimitEnable(true, 5);
+
 
         }
 
@@ -225,6 +233,9 @@ public class arm {
         } else
         if (command == 10) {
             setSetpointSU(lockpoint);
+            if (setpoint < 2000 && getCurrentPositionSU() < 2000) {
+                command = 99;
+            }
         } 
 
 
@@ -334,7 +345,7 @@ public class arm {
                     left_arm.setSelectedSensorPosition(0);
                     right_arm.setSelectedSensorPosition(0);
                     setSetpointSU(0);
-                    lockpoint = setpoint;
+                    lockpoint = -1000;
                 }
                 break; 
 
@@ -345,6 +356,17 @@ public class arm {
             }
 
         }
+    
+    public void setHighMode(boolean switchMode) {
+
+        if (switchMode) {
+            left_arm.overrideSoftLimitsEnable(true);
+            right_arm.overrideSoftLimitsEnable(true);
+        } else {
+            left_arm.overrideSoftLimitsEnable(false);
+            right_arm.overrideSoftLimitsEnable(false);
+        }
+    }
 
     public void findArbFB() {
 
