@@ -14,6 +14,7 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import com.ctre.phoenix.music.Orchestra;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.Joystick;
 
@@ -56,7 +57,7 @@ public class Robot extends TimedRobot {
 
 	// JOYSTICKS
 	private static Joystick xbox_0 = new Joystick(0); // DRIVER
-	private static Joystick xbox_1 = new Joystick(1); // EXECUTIONER
+	// private static Joystick xbox_1 = new Joystick(1); // EXECUTIONER
 	private static Joystick gamepad0 = new Joystick(2); // multi-button fun
 	private static Joystick gamepad1 = new Joystick(3); // multi-button fun
 	private static Buttons b = new Buttons();
@@ -76,6 +77,9 @@ public class Robot extends TimedRobot {
 
 	@Override
   	public void robotInit() {
+
+		CameraServer.startAutomaticCapture();
+
 	////// Set drive motor phases and inversion //////////
 
 
@@ -171,13 +175,13 @@ boolean arm_current_limit = true;
 	boolean pivotL = xbox_0.getRawButton(5); 
 	boolean pivotR = xbox_0.getRawButton(6);
 	boolean handBrake = xbox_0.getRawButtonPressed(4);
-	double MaxPowerFwd = 0; //xbox_0.getRawAxis(2);
-	double MaxPowerRev = 0; //xbox_0.getRawAxis(3);
+	double MaxPowerFwd = gamepad1.getRawButton(1) ? xbox_0.getRawAxis(2) : 0;
+	double MaxPowerRev = gamepad1.getRawButton(1) ? xbox_0.getRawAxis(3) * 0.6 : 0;
 
 ///// FINS
 	// Buttons
-	boolean fin_adj_up = (xbox_1.getPOV() == 0);
-	boolean fin_adj_down = (xbox_1.getPOV() == 180);
+	// boolean fin_adj_up = (xbox_1.getPOV() == 0);
+	// boolean fin_adj_down = (xbox_1.getPOV() == 180);
 	boolean fin_pull = (gamepad0.getRawButton(b.FIS));
 	boolean fin_push = (gamepad0.getRawButton(b.FOS));
 	boolean fin_home = gamepad0.getRawButton(b.homeFins);
@@ -195,12 +199,12 @@ boolean arm_current_limit = true;
 
 ///////////////////// Turning booleans into system commands
 
-	if (fin_adj_up) {
-		fin_status = 3;
-	} else 
-	if (fin_adj_down) {
-		fin_status = 4;
-	} else
+	// if (fin_adj_up) {
+	// 	fin_status = 3;
+	// } else 
+	// if (fin_adj_down) {
+	// 	fin_status = 4;
+	// } else
 	if (fin_set_point) {
 		fin_status = 2;
 	} else 
@@ -249,16 +253,16 @@ boolean arm_current_limit = true;
 	// 	arm_sticky = false;
 
 	// } else
-	if (xbox_0.getRawAxis(2) > 0.2){
+	if (xbox_0.getRawAxis(2) > 0.2 && ! gamepad1.getRawButton(1)){
 
-		armset = xbox_1.getRawAxis(2) * -1;
+		armset = xbox_0.getRawAxis(2) * -1;
 		arm_cmd = 3;
 		arm_sticky = true;
 
 
 	} else
-	if (xbox_0.getRawAxis(3) > 0.2) {
-		armset = xbox_1.getRawAxis(3);
+	if (xbox_0.getRawAxis(3) > 0.2 && ! gamepad1.getRawButton(1)) {
+		armset = xbox_0.getRawAxis(3);
 		arm_cmd = 3;
 		arm_sticky = true;
 	} else
@@ -280,7 +284,6 @@ boolean arm_current_limit = true;
 
 	chop.setHighMode(gamepad1.getRawButton(1));
 
-	
 	///////// ASSIGNING FUNCTONS
 	vroom.velPeriodic(speed, rot, true, vel_ctl, handBrake, pivotL, pivotR, MaxPowerFwd, MaxPowerRev, vel_pov);
 	// Velocity Drive args in order:
@@ -377,6 +380,8 @@ boolean arm_current_limit = true;
 		SmartDashboard.putBoolean("Vel Ctl Mode", vel_ctl);
 
 		SmartDashboard.putNumber("Drive Speed Error", leftDrive.getSelectedSensorVelocity(1)+rightDrive.getSelectedSensorVelocity(0));
+		SmartDashboard.putBoolean("Limit mode", gamepad1.getRawButton(1));
+		
 		
 		
 		SmartDashboard.putNumber("right shark position", right_shark.getSelectedSensorPosition(0));

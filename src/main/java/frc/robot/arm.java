@@ -233,7 +233,7 @@ public class arm {
         } else
         if (command == 10) {
             setSetpointSU(lockpoint);
-            if (setpoint < 2000 && getCurrentPositionSU() < 2000) {
+            if (setpoint < 2000 && getCurrentPositionSU() < 0) {
                 command = 99;
             }
         } 
