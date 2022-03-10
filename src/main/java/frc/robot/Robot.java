@@ -21,6 +21,9 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.shuffleboard.*;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
+import edu.wpi.first.wpilibj.Timer;
+
+
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
  * each mode, as described in the TimedRobot documentation. If you change the name of this class or
@@ -62,6 +65,9 @@ public class Robot extends TimedRobot {
 	private static Joystick gamepad1 = new Joystick(3); // multi-button fun
 	private static Buttons b = new Buttons();
 
+	// Timer
+	Timer timer = new Timer();
+
 
 	// MOTION SYSTEMS
 	private static Velocity vroom = new Velocity(leftDrive, rightDrive, leftFollow, rightFollow, MAX_SPEED, safety);
@@ -99,25 +105,121 @@ public class Robot extends TimedRobot {
 	updateSB_Periodic();
 
 
-
-
-
   }
 
 
   @Override
   public void autonomousInit() {
 
+	timer.reset();
+	timer.start();
+
+	vroom.vel_initalize();
+	fin.shark_initial();
+	chop.arm_init();
+
 	// Timer.
 
   }
+
+
+  // Global variables
+	double speed;
+	double rot;
+	boolean vel_ctl = true;
+
+	double fin_set;
+	int fin_status;
+
+	double current_arm_set = 0;
+	int arm_cmd = 0;
+	double arm_lock_pos = 0;
+	boolean arm_sticky = true;
+
+	boolean home_arm = false;
+	boolean arm_current_limit = true;
 
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
 
+		double armset = 0;
 
-  }
+		if(aTS(0, 3)) {
+			speed = 0;
+
+			fin_set = 0;
+			fin_status = -1;
+			
+			armset = chop.max_sensor_balls;
+			arm_cmd = 2;
+			arm_sticky = false;
+
+
+		} else
+		if (aTS(3, 6.5)) {
+
+			speed = 0.7;
+
+			fin_set = 0;
+			fin_status = 1;
+			
+			armset = chop.max_sensor_balls;
+			arm_cmd = 2;
+			arm_sticky = false;
+
+		} else 
+		if (aTS(6.5, 9)) {
+
+			speed = 00;
+
+			fin_set = -1;
+			fin_status = 2;
+			
+			armset = chop.max_sensor_balls;
+			arm_cmd = 2;
+			arm_sticky = false;
+
+		} else
+		if (aTS(9, 10.5)) {
+			speed = -0.8;
+
+			fin_set = 0;
+			fin_status = 2;
+			
+			armset = chop.max_sensor_balls;
+			arm_cmd = 2;
+			arm_sticky = false;
+		} else
+		if (aTS(10.5, 14)) {
+			speed = -0.8;
+
+			fin_set = 0;
+			fin_status = 2;
+			
+			armset = -9000;
+			arm_cmd = 2;
+			arm_sticky = false;
+		} else
+		{
+			speed = 0;
+
+			fin_set = 0;
+			fin_status = 2;
+			
+			armset = -9000;
+			arm_cmd = 2;
+			arm_sticky = false;
+		} 
+
+
+
+		vroom.velPeriodic(speed, 0, true, true, false, false, false, 0, 0, -1);
+
+		fin.sharkPeriodic(fin_set, fin_status);
+
+		chop.arm_Periodic(armset, arm_cmd, arm_sticky);
+	}
 
   /** This function is called once when teleop is enabled. */
   @Override
@@ -128,21 +230,7 @@ public class Robot extends TimedRobot {
 	chop.arm_init();
 
   }
-// Global variables
-double speed;
-double rot;
-boolean vel_ctl = true;
 
-double fin_set;
-int fin_status;
-
-double current_arm_set = 0;
-int arm_cmd = 0;
-double arm_lock_pos = 0;
-boolean arm_sticky = true;
-
-boolean home_arm = false;
-boolean arm_current_limit = true;
 
 
   /** This function is called periodically during operator control. */
@@ -368,6 +456,14 @@ boolean arm_current_limit = true;
 		else
 			return input * input;
 	
+	}
+
+	private boolean aTS(double startTimeS, double endTimeS) {
+		if (startTimeS < timer.get() && timer.get() < endTimeS) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	private void updateSB_Periodic() {

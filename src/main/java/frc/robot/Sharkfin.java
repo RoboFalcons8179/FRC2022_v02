@@ -28,7 +28,7 @@ public class Sharkfin {
     // private double lead_ki = 0.0000;
     // private double lead_iz = 1000; //Sensor units
 
-    private final double homePWM = -0.2;
+    private final double homePWM = 0.2;
 
     // private double follow_kf = 1;
     // private double follow_kp = 0.000;
@@ -41,7 +41,7 @@ public class Sharkfin {
     private final int masterID;
 
     public double setpoint;
-    private double SAFETY_BLOCK = 0.85;
+    private double SAFETY_BLOCK = 0.97;
 
     int normalAccel = 40000;
     int normalCruise = 15000;
@@ -130,20 +130,33 @@ public class Sharkfin {
         // rght.configReverseSoftLimitEnable(true);
         // left.configReverseSoftLimitThreshold(3000);
         // rght.configReverseSoftLimitThreshold(3000);
-
+        
         // Brake Modes - might need to change based on game.
 
-        rght.setNeutralMode(NeutralMode.Brake);
-        left.setNeutralMode(NeutralMode.Brake);
+        rght.setNeutralMode(NeutralMode.Coast);
+        left.setNeutralMode(NeutralMode.Coast);
+
+        // left.configClearPositionOnLimitF(true, 10);
+        // rght.configClearPositionOnLimitF(true, 10);
+
+        rght.setSelectedSensorPosition(MAX_FIN_LEN);
+        left.setSelectedSensorPosition(MAX_FIN_LEN);
         
 
     }
     int last_status;
+
+
     public void shark_initial() {
         last_status = 0;
 
         left.set(ControlMode.PercentOutput, 0);
         rght.set(ControlMode.PercentOutput, 0);
+
+        // Brake Modes - might need to change based on game.
+
+        rght.setNeutralMode(NeutralMode.Brake);
+        left.setNeutralMode(NeutralMode.Brake);
 
         setpoint = left.getSelectedSensorPosition();
     }
@@ -256,7 +269,7 @@ public class Sharkfin {
             case 4: // Adjusting by the manual control down
                 rght.selectProfileSlot(0, 0);
                 left.selectProfileSlot(0, 0);    
-                setpoint = remap(SAFETY_BLOCK * -1);
+                setpoint = remap(SAFETY_BLOCK*-1);
                 left.set(ControlMode.MotionMagic, setpoint);
                 rght.set(ControlMode.MotionMagic, setpoint);
                 break;
@@ -278,6 +291,7 @@ public class Sharkfin {
                 left.set(ControlMode.PercentOutput, homePWM);
                 rght.set(ControlMode.PercentOutput, homePWM);
                 break;
+
             default: // Off
                 left.set(ControlMode.PercentOutput, 0);
                 rght.set(ControlMode.PercentOutput, 0);
@@ -287,16 +301,26 @@ public class Sharkfin {
 
         last_status = status;
 
+        // Fake Zero the limit switches
+
+        if (left.isFwdLimitSwitchClosed() == 1) {
+            left.setSelectedSensorPosition(MAX_FIN_LEN);
+        }
+
+        if (rght.isFwdLimitSwitchClosed() == 1) {
+            rght.setSelectedSensorPosition(MAX_FIN_LEN);
+        }
+
     }
 
     private double remap (double input) {
 
         input = input + 1;
-        return input * MAX_FIN_LEN/2;
+        return 1 * input * MAX_FIN_LEN/2;
 
     }
 
     private double unmap (double input) {
-        return (2*input/MAX_FIN_LEN) - 1;
+        return (2 * input / MAX_FIN_LEN) - 1;
     }
 }

@@ -32,7 +32,7 @@ public class arm {
     private final double lower_deg = -37.8;
     private final double upper_deg = 26.;
     private final double min_sensor = 0;
-    private final double max_sensor_balls = 60000;
+    public final double max_sensor_balls = 60000;
     private final double max_sensor = 80000;
 
         // Calculating A, can find empirically
@@ -199,7 +199,7 @@ public class arm {
 
         right_arm.set(ControlMode.Follower, masterID);
 
-        setSetpointSU(0);
+        setSetpointSU(-3000);
         first = true;
         left_arm.selectProfileSlot(upslotID, 0);
     }
@@ -223,7 +223,7 @@ public class arm {
         // Command: 10: Float in Position Control, default
         
         if (first) {
-            setSetpointSU(0);
+            setSetpointSU(-3000);
             sticky = true;
             first = false;
             command = 0;
@@ -233,6 +233,11 @@ public class arm {
         } else
         if (command == 10) {
             setSetpointSU(lockpoint);
+
+            if (lockpoint == 0) {
+                lockpoint = -2000;
+            }
+
             if (setpoint < 2000 && getCurrentPositionSU() < 0) {
                 command = 99;
             }
