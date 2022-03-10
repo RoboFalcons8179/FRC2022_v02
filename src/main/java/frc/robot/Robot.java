@@ -60,9 +60,8 @@ public class Robot extends TimedRobot {
 
 	// JOYSTICKS
 	private static Joystick xbox_0 = new Joystick(0); // DRIVER
-	// private static Joystick xbox_1 = new Joystick(1); // EXECUTIONER
-	private static Joystick gamepad0 = new Joystick(2); // multi-button fun
-	private static Joystick gamepad1 = new Joystick(3); // multi-button fun
+	private static Joystick gamepad0 = new Joystick(1); // multi-button fun
+	private static Joystick gamepad1 = new Joystick(2); // multi-button fun
 	private static Buttons b = new Buttons();
 
 	// Timer

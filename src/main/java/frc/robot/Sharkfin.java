@@ -46,8 +46,10 @@ public class Sharkfin {
     int normalAccel = 40000;
     int normalCruise = 15000;
 
-    int pullCruise = 2000;
-    int pullAccel = 8000;
+    int pullCruise = 2500;
+    int pullAccel = 9000;
+
+    int scurve = 2;
   
 
 
@@ -219,8 +221,8 @@ public class Sharkfin {
                 rght.configMotionAcceleration(pullAccel);
                 rght.configMotionCruiseVelocity(pullCruise); 
 
-                rght.configMotionSCurveStrength(7);
-                left.configMotionSCurveStrength(7);
+                rght.configMotionSCurveStrength(scurve);
+                left.configMotionSCurveStrength(scurve);
                 
                 break;
             case 6:
@@ -232,8 +234,8 @@ public class Sharkfin {
                 rght.configMotionAcceleration(pullAccel);
                 rght.configMotionCruiseVelocity(pullCruise); 
 
-                rght.configMotionSCurveStrength(7);
-                left.configMotionSCurveStrength(7);
+                rght.configMotionSCurveStrength(scurve);
+                left.configMotionSCurveStrength(scurve);
                 break;
             }
             
