@@ -148,9 +148,9 @@ public class Robot extends TimedRobot {
 			speed = 0;
 
 			fin_set = 0;
-			fin_status = -1;
+			fin_status = 1;
 			
-			armset = chop.max_sensor_balls;
+			armset = chop.remapDegreeToSensor(0);
 			arm_cmd = 2;
 			arm_sticky = false;
 
@@ -163,34 +163,34 @@ public class Robot extends TimedRobot {
 			fin_set = 0;
 			fin_status = 1;
 			
-			armset = chop.max_sensor_balls;
+			armset = chop.remapDegreeToSensor(0);
 			arm_cmd = 2;
 			arm_sticky = false;
 
 		} else 
-		if (aTS(6.5, 9)) {
+		if (aTS(6.5, 10)) {
 
 			speed = 00;
 
-			fin_set = -1;
+			fin_set = .89;
 			fin_status = 2;
 			
-			armset = chop.max_sensor_balls;
+			armset = chop.remapDegreeToSensor(0);
 			arm_cmd = 2;
 			arm_sticky = false;
 
 		} else
-		if (aTS(9, 10.5)) {
+		if (aTS(10, 11.5)) {
 			speed = -0.8;
 
 			fin_set = 0;
 			fin_status = 2;
 			
-			armset = chop.max_sensor_balls;
+			armset = chop.remapDegreeToSensor(0);
 			arm_cmd = 2;
 			arm_sticky = false;
 		} else
-		if (aTS(10.5, 14)) {
+		if (aTS(11.5, 15)) {
 			speed = -0.8;
 
 			fin_set = 0;
@@ -326,20 +326,6 @@ public class Robot extends TimedRobot {
 		arm_sticky = true;
 
 	} else	
-	// if (xbox_1.getRawButton(3)){ // Setpoint 1
-
-	// 	arm_cmd = 2;
-	// 	armset = chop.remapDegreeToSensor(0);
-	// 	arm_sticky = true;
-
-	// } else
-	// if (xbox_1.getRawButton(4)){ // Setpoint 2
-
-	// 	arm_cmd = 2;
-	// 	armset = chop.remapDegreeToSensor(-20);
-	// 	arm_sticky = false;
-
-	// } else
 	if (xbox_0.getRawAxis(2) > 0.2 && ! gamepad1.getRawButton(1)){
 
 		armset = xbox_0.getRawAxis(2) * -1;
@@ -363,6 +349,12 @@ public class Robot extends TimedRobot {
 		arm_cmd = 2;
 		arm_sticky = false;
 	} else
+	if (gamepad0.getRawButton(1)) {
+		armset = 46000;
+		arm_cmd = 2;
+		arm_sticky = false;
+	}
+	else
 	 { // Default Hold, command 1 or 10
 		
 		arm_cmd = 10;

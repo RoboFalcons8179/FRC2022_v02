@@ -32,8 +32,8 @@ public class arm {
     private final double lower_deg = -37.8;
     private final double upper_deg = 26.;
     private final double min_sensor = 0;
-    public final double max_sensor_balls = 60000;
-    private final double max_sensor = 80000;
+    public final double max_sensor_balls = 57000;//60000
+    private final double max_sensor = 77000;
 
         // Calculating A, can find empirically
         //rather than physics-ly
@@ -365,11 +365,11 @@ public class arm {
     public void setHighMode(boolean switchMode) {
 
         if (switchMode) {
-            left_arm.overrideSoftLimitsEnable(true);
-            right_arm.overrideSoftLimitsEnable(true);
+            left_arm.configForwardSoftLimitThreshold(max_sensor_balls);
+            right_arm.configForwardSoftLimitThreshold(max_sensor_balls);
         } else {
-            left_arm.overrideSoftLimitsEnable(false);
-            right_arm.overrideSoftLimitsEnable(false);
+            left_arm.configForwardSoftLimitThreshold(max_sensor);
+            right_arm.configForwardSoftLimitThreshold(max_sensor);
         }
     }
 

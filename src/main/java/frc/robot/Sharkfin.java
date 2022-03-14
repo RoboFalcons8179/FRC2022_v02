@@ -28,7 +28,7 @@ public class Sharkfin {
     // private double lead_ki = 0.0000;
     // private double lead_iz = 1000; //Sensor units
 
-    private final double homePWM = 0.2;
+    private final double homePWM = 0.3;
 
     // private double follow_kf = 1;
     // private double follow_kp = 0.000;
@@ -46,10 +46,10 @@ public class Sharkfin {
     int normalAccel = 40000;
     int normalCruise = 15000;
 
-    int pullCruise = 2500;
-    int pullAccel = 9000;
+    int pullCruise = 2000;
+    int pullAccel = 4000;
 
-    int scurve = 2;
+    int scurve = 7;
   
 
 
@@ -141,8 +141,8 @@ public class Sharkfin {
         // left.configClearPositionOnLimitF(true, 10);
         // rght.configClearPositionOnLimitF(true, 10);
 
-        rght.setSelectedSensorPosition(MAX_FIN_LEN);
-        left.setSelectedSensorPosition(MAX_FIN_LEN);
+        rght.setSelectedSensorPosition(0);
+        left.setSelectedSensorPosition(0);
         
 
     }
@@ -305,13 +305,13 @@ public class Sharkfin {
 
         // Fake Zero the limit switches
 
-        if (left.isFwdLimitSwitchClosed() == 1) {
-            left.setSelectedSensorPosition(MAX_FIN_LEN);
-        }
+        // if (left.isFwdLimitSwitchClosed() == 1) {
+        //     left.setSelectedSensorPosition(MAX_FIN_LEN);
+        // }
 
-        if (rght.isFwdLimitSwitchClosed() == 1) {
-            rght.setSelectedSensorPosition(MAX_FIN_LEN);
-        }
+        // if (rght.isFwdLimitSwitchClosed() == 1) {
+        //     rght.setSelectedSensorPosition(MAX_FIN_LEN);
+        // }
 
     }
 

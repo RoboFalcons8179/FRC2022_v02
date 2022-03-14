@@ -42,7 +42,7 @@ public class Velocity {
 
 
 
-    public double MAXSPEED = 500;
+    public double MAXSPEED = 750;
 	public double forwardScale = 1;
 	public double turnScale = 1;
 
@@ -236,16 +236,16 @@ public class Velocity {
 			cheesyLeftVel = cheesyLeft*TRUEMAXSPEED;
 			cheesyRightVel = cheesyRight*TRUEMAXSPEED;
 
-		} else 
-		if (maxPowerR > 0.4 && safety == false) { // Max speed Rev
+		} //else 
+		// if (maxPowerR > 0.4 && safety == false) { // Max speed Rev
 
-			Cheesy.cheesyDrive(maxPowerR * -1, turn, isQuickTurn);
-			cheesyLeft = Cheesy.leftSpeed;
-			cheesyRight = Cheesy.rightSpeed;
-			cheesyLeftVel = cheesyLeft*TRUEMAXSPEED;
-			cheesyRightVel = cheesyRight*TRUEMAXSPEED;
+		// 	Cheesy.cheesyDrive(maxPowerR * -1, turn, isQuickTurn);
+		// 	cheesyLeft = Cheesy.leftSpeed;
+		// 	cheesyRight = Cheesy.rightSpeed;
+		// 	cheesyLeftVel = cheesyLeft*TRUEMAXSPEED;
+		// 	cheesyRightVel = cheesyRight*TRUEMAXSPEED;
 
-		}
+		// }
 		else { // Normal speed
 
 			Cheesy.cheesyDrive(speed, turn, isQuickTurn);
