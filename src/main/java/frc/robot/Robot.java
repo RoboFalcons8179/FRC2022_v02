@@ -129,8 +129,6 @@ public class Robot extends TimedRobot {
 	fin.shark_initial();
 	chop.arm_init();
 
-	// Timer.
-
   }
 
 
