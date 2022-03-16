@@ -49,8 +49,7 @@ public class Sharkfin {
     int pullCruise = 2000;
     int pullAccel = 4000;
 
-    int scurve = 7;
-  
+    int scurve = 7;  
 
 
     // private TalonFXConfiguration _leftConfig = new TalonFXConfiguration();

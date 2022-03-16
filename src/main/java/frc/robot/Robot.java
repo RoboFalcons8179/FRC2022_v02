@@ -41,9 +41,11 @@ public class Robot extends TimedRobot {
  	private static PowerDistribution examplePD = new PowerDistribution();
 
 	// SAFETY
-
 	private static final double MAX_SPEED = 400;
 	private static final boolean safety = false;
+
+	// PTHER IMPORTANT THINGS
+	private static commands c = new commands();
 
 	// DRIVE MOTORS
 	private static WPI_TalonSRX rightDrive = new WPI_TalonSRX(1);
@@ -158,10 +160,10 @@ public class Robot extends TimedRobot {
 			speed = 0;
 
 			fin_set = 0;
-			fin_status = 1;
+			fin_status = c.FIN_HOLD;
 			
 			armset = chop.remapDegreeToSensor(0);
-			arm_cmd = 2;
+			arm_cmd = c.ARM_POSITION;
 			arm_sticky = false;
 
 
@@ -171,10 +173,10 @@ public class Robot extends TimedRobot {
 			speed = 0.7;
 
 			fin_set = 0;
-			fin_status = 1;
+			fin_status = c.FIN_HOLD;
 			
 			armset = chop.remapDegreeToSensor(0);
-			arm_cmd = 2;
+			arm_cmd = c.ARM_POSITION;
 			arm_sticky = false;
 
 		} else 
@@ -183,10 +185,10 @@ public class Robot extends TimedRobot {
 			speed = 00;
 
 			fin_set = .89;
-			fin_status = 2;
+			fin_status = c.FIN_FAST;
 			
 			armset = chop.remapDegreeToSensor(0);
-			arm_cmd = 2;
+			arm_cmd = c.ARM_POSITION;
 			arm_sticky = false;
 
 		} else
@@ -194,36 +196,39 @@ public class Robot extends TimedRobot {
 			speed = -0.8;
 
 			fin_set = 0;
-			fin_status = 2;
+			fin_status = c.FIN_FAST;
 			
 			armset = chop.remapDegreeToSensor(0);
-			arm_cmd = 2;
+			arm_cmd = c.ARM_POSITION;
 			arm_sticky = false;
+
+
 		} else
 		if (aTS(11.5, 15)) {
 			speed = -0.8;
 
 			fin_set = 0;
-			fin_status = 2;
+			fin_status = c.FIN_FAST;
 			
 			armset = -9000;
-			arm_cmd = 2;
+			arm_cmd = c.ARM_POSITION;
 			arm_sticky = false;
+
 		} else
 		{
 			speed = 0;
 
 			fin_set = 0;
-			fin_status = 2;
+			fin_status = c.FIN_FAST;
 			
 			armset = -9000;
-			arm_cmd = 2;
+			arm_cmd = c.ARM_POSITION;
 			arm_sticky = false;
 		} 
 
 
 
-		vroom.velPeriodic(speed, 0, true, true, false, false, false, 0, 0, -1);
+		vroom.velPeriodic(speed, 0, true, false, false, false, 0, 0, -1);
 
 		fin.sharkPeriodic(fin_set, fin_status);
 
@@ -247,7 +252,7 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
 	  
 ////////////// Deaults
-	fin_status = 1;
+	fin_status = c.FIN_FAST;
 
 	boolean fin_set_point = false;
 
@@ -265,7 +270,7 @@ public class Robot extends TimedRobot {
 	rot = xbox_0.getRawAxis(4);
 	
 	// switching between cheesy open and vel ctl
-	vel_ctl = xbox_0.getRawButtonPressed(1) ? !vel_ctl : vel_ctl;
+	vel_ctl = xbox_0.getRawButtonPressed(b.xbox_a) ? !vel_ctl : vel_ctl;
 	double vel_pov = xbox_0.getPOV();
 
 	// pivot & others
@@ -296,25 +301,20 @@ public class Robot extends TimedRobot {
 
 ///////////////////// Turning booleans into system commands
 
-	// if (fin_adj_up) {
-	// 	fin_status = 3;
-	// } else 
-	// if (fin_adj_down) {
-	// 	fin_status = 4;
-	// } else
+
 	if (fin_set_point) {
-		fin_status = 2;
+		fin_status = c.FIN_FAST;
 	} else 
 	if (fin_home){
-		fin_status = -1;
+		fin_status = c.HOME;
 	} else 
 	if (fin_pull){
-		fin_status = 5;
+		fin_status = c.FIN_PULLSLOW;
 	} else 
 	if (fin_push){
-		fin_status = 6;
+		fin_status = c.FIN_PUSHSLOW;
 	} else {
-		fin_status = 1;
+		fin_status = c.FIN_HOLD;
 	}
 
 
@@ -324,14 +324,14 @@ public class Robot extends TimedRobot {
 
 	if (gamepad0.getRawButton(b.MU)) { // up
 		
-		arm_cmd = 4;
+		arm_cmd = c.ARM_ADJUP;
 		armset = 0;
 		arm_sticky = true;
 
 	} else 
 	if (gamepad0.getRawButton(b.MD)){ // down
 
-		arm_cmd = 5;
+		arm_cmd = c.ARM_ADJDOWN;
 		armset = -20;
 		arm_sticky = true;
 
@@ -339,42 +339,52 @@ public class Robot extends TimedRobot {
 	if (xbox_0.getRawAxis(2) > 0.2 && ! gamepad1.getRawButton(1)){
 
 		armset = xbox_0.getRawAxis(2) * -1;
-		arm_cmd = 3;
+		arm_cmd = c.ARM_OPENLOOP;
 		arm_sticky = true;
 
 
 	} else
 	if (xbox_0.getRawAxis(3) > 0.2 && ! gamepad1.getRawButton(1)) {
 		armset = xbox_0.getRawAxis(3);
-		arm_cmd = 3;
+		arm_cmd = c.ARM_OPENLOOP;
 		arm_sticky = true;
 	} else
 	if (gamepad0.getRawButton(b.openArm)) { // open arms
 		armset = 18000;
-		arm_cmd = 2;
+		arm_cmd = c.ARM_POSITION;
 		arm_sticky = false;
 	} else
 	if (gamepad0.getRawButton(b.scoreArms)) {
 		armset = 60000;
-		arm_cmd = 2;
+		arm_cmd = c.ARM_POSITION;
 		arm_sticky = false;
 	} else
 	if (gamepad0.getRawButton(1)) {
 		armset = 46000;
-		arm_cmd = 2;
+		arm_cmd = c.ARM_POSITION;
 		arm_sticky = false;
 	}
 	else
 	 { // Default Hold, command 1 or 10
 		
-		arm_cmd = 10;
+		arm_cmd = c.ARM_FLOATPOS;
 		arm_sticky = false;
 	} 
+
+
+
+
+	// SHOOTER
+
+
+
+
+
 
 	chop.setHighMode(gamepad1.getRawButton(1));
 
 	///////// ASSIGNING FUNCTONS
-	vroom.velPeriodic(speed, rot, true, vel_ctl, handBrake, pivotL, pivotR, MaxPowerFwd, MaxPowerRev, vel_pov);
+	vroom.velPeriodic(speed, rot, vel_ctl, handBrake, pivotL, pivotR, MaxPowerFwd, MaxPowerRev, vel_pov);
 	// Velocity Drive args in order:
 		// speed in range [-1,1]
 		// rotate in range [-1,1]
