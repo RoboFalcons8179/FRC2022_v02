@@ -15,7 +15,9 @@ import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import com.ctre.phoenix.music.Orchestra;
 
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Joystick;
 
 import edu.wpi.first.wpilibj.shuffleboard.*;
@@ -80,20 +82,23 @@ public class Robot extends TimedRobot {
 	private NetworkTableEntry setFinsNetwork = data.add("SET FIN POSITION",0).getEntry();
 	private NetworkTableEntry setArmCurrentSW = data.add("SET ARM CURRENT LIMS",true).getEntry();
 
+	// LIMELIGHT
+
+	NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
+	NetworkTableEntry tx = table.getEntry("tx");
+	NetworkTableEntry ty = table.getEntry("ty");
+	NetworkTableEntry ta = table.getEntry("ta");
+
+	
 	@Override
   	public void robotInit() {
 
 		CameraServer.startAutomaticCapture();
 
-	////// Set drive motor phases and inversion //////////
-
-
-	// Shuffleboard
-
 
   }
 
-
+  
   @Override
   public void robotPeriodic() {
 
@@ -102,6 +107,13 @@ public class Robot extends TimedRobot {
 
 
 	updateSB_Periodic();
+
+	// read values periodically
+	double x = tx.getDouble(0.0);
+	double y = ty.getDouble(0.0);
+	double area = ta.getDouble(0.0);
+	
+
 
 
   }
@@ -507,7 +519,6 @@ public class Robot extends TimedRobot {
 
 		SmartDashboard.putNumber("Arm R Temp", left_chop.getTemperature());
 		SmartDashboard.putNumber("Arm L Temp", right_chop.getTemperature());
-
 
 
 	}
