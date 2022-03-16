@@ -215,7 +215,7 @@ public class Velocity {
     }
 
     public void velPeriodic(double speed, double turn, 
-		boolean isCheesy, boolean velctl, boolean isQuickTurn, 
+		boolean velctl, boolean isQuickTurn, 
 		boolean RL, boolean RR, 
 		double maxPowerF, double maxPowerR,
 		double pov) {
@@ -278,20 +278,18 @@ public class Velocity {
 			_rightMaster.set(ControlMode.PercentOutput, -turn/2.5);
 			_leftMaster.set(ControlMode.PercentOutput, turn/2.5);
 
-		} else if (isCheesy && velctl) {
+		} else if (velctl) {
 			// Cheesy Vel, normal mode
 			_rightMaster.set(ControlMode.Velocity, cheesyRightVel); //, DemandType.AuxPID, turn
 			_leftMaster.set(ControlMode.Velocity, cheesyLeftVel);
 
-		} else if (isCheesy) {
+		} else {
 			// Cheesy open, backup mode
 			_rightMaster.set(ControlMode.PercentOutput, cheesyRight);
 			_leftMaster.set(ControlMode.PercentOutput, cheesyLeft);
 
 		}
-		else {
-			//open, unused
-		}
+
 		_rightFollow.follow(_rightMaster, FollowerType.PercentOutput);
 		_leftFollow.follow(_leftMaster, FollowerType.PercentOutput);
     }
