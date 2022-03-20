@@ -6,7 +6,6 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.PowerDistribution;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
@@ -38,7 +37,7 @@ public class Robot extends TimedRobot {
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
    */
- 	private static PowerDistribution examplePD = new PowerDistribution();
+ 	private static PowerDistribution PD = new PowerDistribution();
 
 	// SAFETY
 	private static final double MAX_SPEED = 400;
@@ -62,6 +61,10 @@ public class Robot extends TimedRobot {
 	private static WPI_TalonFX right_chop = new WPI_TalonFX(7);
 	private static WPI_TalonFX left_chop = new WPI_TalonFX(8);
 
+	// SHOOTER MOTORS
+	private static WPI_TalonSRX shooterMotor = new WPI_TalonSRX(9);
+
+
 	// JOYSTICKS
 	private static Joystick xbox_0 = new Joystick(0); // DRIVER
 	private static Joystick gamepad0 = new Joystick(1); // multi-button fun
@@ -76,6 +79,7 @@ public class Robot extends TimedRobot {
 	private static Velocity vroom = new Velocity(leftDrive, rightDrive, leftFollow, rightFollow, MAX_SPEED, safety);
 	private static Sharkfin fin = new Sharkfin(right_shark, left_shark);
 	private static arm chop = new arm(left_chop, right_chop);
+	private static shooter pew = new shooter(shooterMotor);
 
 	// SMART DASHBOARD
 	private ShuffleboardTab data = Shuffleboard.getTab("DATA");
@@ -83,6 +87,7 @@ public class Robot extends TimedRobot {
 	private NetworkTableEntry setTurnNetwork = data.add("SET TURN",0).getEntry();
 	private NetworkTableEntry setFinsNetwork = data.add("SET FIN POSITION",0).getEntry();
 	private NetworkTableEntry setArmCurrentSW = data.add("SET ARM CURRENT LIMS",true).getEntry();
+	private NetworkTableEntry setShooterSpeed = data.add("SETSHOOTER SPEED",0).getEntry();
 
 	// LIMELIGHT
 
@@ -114,9 +119,6 @@ public class Robot extends TimedRobot {
 	double x = tx.getDouble(0.0);
 	double y = ty.getDouble(0.0);
 	double area = ta.getDouble(0.0);
-	
-
-
 
   }
 
@@ -252,7 +254,10 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
 	  
 ////////////// Deaults
-	fin_status = c.FIN_FAST;
+
+	statecommand thisRound = new statecommand();
+
+	thisRound.fin_status = c.FIN_FAST;
 
 	boolean fin_set_point = false;
 
@@ -266,19 +271,21 @@ public class Robot extends TimedRobot {
 //////////
 	
 ///// VELOCITY
-	speed = deadband(xbox_0.getRawAxis(1) * -1);
-	rot = xbox_0.getRawAxis(4);
+	thisRound.speed = deadband(xbox_0.getRawAxis(1) * -1);
+	thisRound.turn = xbox_0.getRawAxis(4);
 	
 	// switching between cheesy open and vel ctl
-	vel_ctl = xbox_0.getRawButtonPressed(b.xbox_a) ? !vel_ctl : vel_ctl;
-	double vel_pov = xbox_0.getPOV();
+	thisRound.velctl = xbox_0.getRawButtonPressed(b.xbox_a) ? !vel_ctl : vel_ctl;
 
 	// pivot & others
-	boolean pivotL = xbox_0.getRawButton(5); 
-	boolean pivotR = xbox_0.getRawButton(6);
-	boolean handBrake = xbox_0.getRawButtonPressed(4);
-	double MaxPowerFwd = gamepad1.getRawButton(1) ? xbox_0.getRawAxis(2) : 0;
-	double MaxPowerRev = gamepad1.getRawButton(1) ? xbox_0.getRawAxis(3) * 0.6 : 0;
+	thisRound.RL = xbox_0.getRawButton(5); 
+	thisRound.RR = xbox_0.getRawButton(6);
+	thisRound.isQuickTurn = xbox_0.getRawButtonPressed(4);
+	thisRound.pov = xbox_0.getPOV();
+
+	// Turbo
+	thisRound.maxPowerF = gamepad1.getRawButton(1) ? xbox_0.getRawAxis(2) : 0;
+	// double MaxPowerRev = gamepad1.getRawButton(1) ? xbox_0.getRawAxis(3) * 0.6 : 0;
 
 ///// FINS
 	// Buttons
@@ -290,11 +297,11 @@ public class Robot extends TimedRobot {
 
 	if (gamepad0.getRawButton(b.FOF)) {
 		fin_set_point = true;
-		fin_set = 1;
+		thisRound.fin_set = 1;
 	}
 	if (gamepad0.getRawButton(b.FIF)) {
 		fin_set_point = true;
-		fin_set = -.95;
+		thisRound.fin_set = -.95;
 	}
 
 
@@ -303,72 +310,79 @@ public class Robot extends TimedRobot {
 
 
 	if (fin_set_point) {
-		fin_status = c.FIN_FAST;
+		thisRound.fin_status = c.FIN_FAST;
 	} else 
 	if (fin_home){
-		fin_status = c.HOME;
+		thisRound.fin_status = c.HOME;
 	} else 
 	if (fin_pull){
-		fin_status = c.FIN_PULLSLOW;
+		thisRound.fin_status = c.FIN_PULLSLOW;
 	} else 
 	if (fin_push){
-		fin_status = c.FIN_PUSHSLOW;
+		thisRound.fin_status = c.FIN_PUSHSLOW;
 	} else {
-		fin_status = c.FIN_HOLD;
+		thisRound.fin_status = c.FIN_HOLD;
 	}
 
 
 	/////// ARM //////////
 
-	double armset = current_arm_set;
+	thisRound.armset = current_arm_set;
 
-	if (gamepad0.getRawButton(b.MU)) { // up
+	if (gamepad0.getRawButton(b.MU)) { 
+		// up
 		
-		arm_cmd = c.ARM_ADJUP;
-		armset = 0;
-		arm_sticky = true;
+		thisRound.arm_cmd = c.ARM_ADJUP;
+		thisRound.armset = 0;
+		thisRound.arm_sticky = true;
 
 	} else 
-	if (gamepad0.getRawButton(b.MD)){ // down
+	if (gamepad0.getRawButton(b.MD)){ 
+		// down
 
-		arm_cmd = c.ARM_ADJDOWN;
-		armset = 0;
-		arm_sticky = true;
+		thisRound.arm_cmd = c.ARM_ADJDOWN;
+		thisRound.armset = 0;
+		thisRound.arm_sticky = true;
 
 	} else	
 	if (xbox_0.getRawAxis(2) > 0.2 && ! gamepad1.getRawButton(1)){
-
-		armset = xbox_0.getRawAxis(2) * -1;
-		arm_cmd = c.ARM_OPENLOOP;
-		arm_sticky = true;
+		// High mode Swing Down
+		thisRound.armset = xbox_0.getRawAxis(2) * -1;
+		thisRound.arm_cmd = c.ARM_OPENLOOP;
+		thisRound.arm_sticky = true;
 
 
 	} else
 	if (xbox_0.getRawAxis(3) > 0.2 && ! gamepad1.getRawButton(1)) {
-		armset = xbox_0.getRawAxis(3);
-		arm_cmd = c.ARM_OPENLOOP;
-		arm_sticky = true;
+		// High mode swing up
+		
+		thisRound.armset = xbox_0.getRawAxis(3);
+		thisRound.arm_cmd = c.ARM_OPENLOOP;
+		thisRound.arm_sticky = true;
 	} else
-	if (gamepad0.getRawButton(b.openArm)) { // open arms
-		armset = 18000;
-		arm_cmd = c.ARM_POSITION;
-		arm_sticky = false;
+	if (gamepad0.getRawButton(b.openArm)) { 
+		// open arms for ball
+		thisRound.armset = 18000;
+		thisRound.arm_cmd = c.ARM_POSITION;
+		thisRound.arm_sticky = false;
 	} else
 	if (gamepad0.getRawButton(b.scoreArms)) {
-		armset = 60000;
-		arm_cmd = c.ARM_POSITION;
-		arm_sticky = false;
+		// raise up to score
+		thisRound.armset = 60000;
+		thisRound.arm_cmd = c.ARM_POSITION;
+		thisRound.arm_sticky = false;
 	} else
 	if (gamepad0.getRawButton(b.humanScore)) {
-		armset = 46000;
-		arm_cmd = c.ARM_POSITION;
-		arm_sticky = false;
+		// for human to roll balls
+		thisRound.armset = 46000;
+		thisRound.arm_cmd = c.ARM_POSITION;
+		thisRound.arm_sticky = false;
 	}
 	else
 	 { // Default Hold, command 1 or 10
 		
-		arm_cmd = c.ARM_FLOATPOS;
-		arm_sticky = false;
+		thisRound.arm_cmd = c.ARM_FLOATPOS;
+		thisRound.arm_sticky = false;
 	} 
 
 
@@ -376,37 +390,47 @@ public class Robot extends TimedRobot {
 
 	// SHOOTER
 
+		thisRound.shootSpeed = setShooterSpeed.getDouble(0.0);
+		thisRound.shootCmd = 1;
 
-
-
-
+	
+	// Switching between the shooting mode and the hanging mode form
+	// swtich on our control board	
 
 	chop.setHighMode(gamepad1.getRawButton(1));
 
 	///////// ASSIGNING FUNCTONS
-	vroom.velPeriodic(speed, rot, vel_ctl, handBrake, pivotL, pivotR, MaxPowerFwd, MaxPowerRev, vel_pov);
-	// Velocity Drive args in order:
-		// speed in range [-1,1]
-		// rotate in range [-1,1]
-		// bool is cheezy: are you using cheese drive (yes)
-		// bool velctl: using velocity control or open loop.
-		// bool cheezy sharp: in cheezy, this will start a sharp turn.
+	
 
-		// Helper output vroom functions:
-		xbox_0.setRumble(RumbleType.kLeftRumble, rmbleDBremap(leftDrive.getSupplyCurrent() / 30));
-		xbox_0.setRumble(RumbleType.kRightRumble, rmbleDBremap(rightDrive.getSupplyCurrent() / 30));
 
-	fin.sharkPeriodic(fin_set, fin_status); // fin_set is range [-1,1]
-	// Fin args in order:
-		// Setpoint in range [-1, 1]
-		// Statuses:
-		// default: Turn off motors
-		// 1: Hold
-		// 2: Move to specific point
-		// 3: Move fins up
-		// 4: move fins down
+	thisRound.assignCmd(vroom, fin, chop, pew);
 
-	chop.arm_Periodic(armset, arm_cmd, arm_sticky);
+
+
+
+	// vroom.velPeriodic(speed, rot, vel_ctl, handBrake, pivotL, pivotR, MaxPowerFwd, MaxPowerRev, vel_pov);
+	// // Velocity Drive args in order:
+	// 	// speed in range [-1,1]
+	// 	// rotate in range [-1,1]
+	// 	// bool is cheezy: are you using cheese drive (yes)
+	// 	// bool velctl: using velocity control or open loop.
+	// 	// bool cheezy sharp: in cheezy, this will start a sharp turn.
+
+	// 	// Helper output vroom functions:
+	// 	xbox_0.setRumble(RumbleType.kLeftRumble, rmbleDBremap(leftDrive.getSupplyCurrent() / 30));
+	// 	xbox_0.setRumble(RumbleType.kRightRumble, rmbleDBremap(rightDrive.getSupplyCurrent() / 30));
+
+	// fin.sharkPeriodic(fin_set, fin_status); // fin_set is range [-1,1]
+	// // Fin args in order:
+	// 	// Setpoint in range [-1, 1]
+	// 	// Statuses:
+	// 	// default: Turn off motors
+	// 	// 1: Hold
+	// 	// 2: Move to specific point
+	// 	// 3: Move fins up
+	// 	// 4: move fins down
+
+	// chop.arm_Periodic(armset, arm_cmd, arm_sticky);
 	// Arm args in order:
 		// Setpoint in SENSOR Units, 
 		// States

@@ -20,5 +20,19 @@ public class commands {
     public final int FIN_PUSHSLOW = 6;
     public final int FIN_OFF = 0;
 
+    public final int SHOOT_HOLD = 0;
+    public final int SHOOT_MANSPEED = 1;
+    public final int SHOOT_NEAR = 2;
+    public final int SHOOT_FAR = 3;
+    public final int SHOOT_EJECT = 9;
+    public final int SHOOT_MAN = 11;
+
+
+    public final int BB_HOLD = 0;
+    public final int BB_SUCK = 1;
+    public final int BB_SEND = 2;
+    public final int BB_FORCESEND = 3;
+    public final int BB_MANUAL = 11;
+
     
 }
