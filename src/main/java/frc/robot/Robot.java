@@ -261,7 +261,7 @@ public class Robot extends TimedRobot {
 	// speed = setSpeedNetwork.getDouble(1.0);
 	// rot = setTurnNetwork.getDouble(1.0);
 	// fin_set = setFinsNetwork.getDouble(1.0);
-	// chop.currentLimitSwitch(setArmCurrentSW.getBoolean(true));
+	// chop.currentLimitSwitch(setArmCurrentxxSW.getBoolean(true));
 
 //////////
 	
@@ -332,7 +332,7 @@ public class Robot extends TimedRobot {
 	if (gamepad0.getRawButton(b.MD)){ // down
 
 		arm_cmd = c.ARM_ADJDOWN;
-		armset = -20;
+		armset = 0;
 		arm_sticky = true;
 
 	} else	
@@ -359,7 +359,7 @@ public class Robot extends TimedRobot {
 		arm_cmd = c.ARM_POSITION;
 		arm_sticky = false;
 	} else
-	if (gamepad0.getRawButton(1)) {
+	if (gamepad0.getRawButton(b.humanScore)) {
 		armset = 46000;
 		arm_cmd = c.ARM_POSITION;
 		arm_sticky = false;
