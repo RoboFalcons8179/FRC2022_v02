@@ -42,7 +42,7 @@ public class Velocity {
 
 
 
-    public double MAXSPEED = 750;
+    public double MAXSPEED = 1000;
 	public double forwardScale = 1;
 	public double turnScale = 1;
 

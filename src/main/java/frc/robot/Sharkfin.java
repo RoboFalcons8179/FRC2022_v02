@@ -142,6 +142,10 @@ public class Sharkfin {
 
         rght.setSelectedSensorPosition(0);
         left.setSelectedSensorPosition(0);
+
+        // Set max rate for sharkfins. Prevents hopping around.
+
+        
         
 
     }

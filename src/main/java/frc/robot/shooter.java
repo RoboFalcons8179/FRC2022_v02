@@ -9,7 +9,7 @@ public class shooter {
     private final int SLOT = 0;
 
     private WPI_TalonSRX shooter;
-    private WPI_VictorSPX bb;
+    // private WPI_VictorSPX bb;
 
     // SHOOTER SETPOINTS
     private double near = 500;
@@ -27,22 +27,24 @@ public class shooter {
         shooter.setInverted(false);
         shooter.setSensorPhase(false);
 
-        bb.setInverted(true);
+        // bb.setInverted(true);
 
-        shooter.config_kP(SLOT, 0);
+        shooter.config_kP(SLOT, 0.04);
         shooter.config_kI(SLOT, 0);
-        shooter.config_kD(SLOT, 0);
-        shooter.config_kF(SLOT, 0);
+        shooter.config_kD(SLOT, 0.5);
+        shooter.config_kF(SLOT, 0.0205);
         shooter.configAllowableClosedloopError(SLOT, 0, 10);
+        shooter.configClosedloopRamp(0.075);
 
         shooter.selectProfileSlot(SLOT,0);
+        shooter.setSelectedSensorPosition(0);
 
     }
 
 
     public void init() {
         shooter.set(0);
-        bb.set(0);
+        // bb.set(0);
     }
     
 

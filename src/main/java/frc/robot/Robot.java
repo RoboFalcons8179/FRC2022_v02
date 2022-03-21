@@ -116,9 +116,9 @@ public class Robot extends TimedRobot {
 	updateSB_Periodic();
 
 	// read values periodically
-	double x = tx.getDouble(0.0);
-	double y = ty.getDouble(0.0);
-	double area = ta.getDouble(0.0);
+	// double x = tx.getDouble(0.0);
+	// double y = ty.getDouble(0.0);
+	// double area = ta.getDouble(0.0);
 
   }
 
@@ -137,104 +137,104 @@ public class Robot extends TimedRobot {
 
 
   // Global variables
-	double speed;
-	double rot;
-	boolean vel_ctl = true;
+	// double speed;
+	// double rot;
+	// boolean vel_ctl = true;
 
-	double fin_set;
-	int fin_status;
+	// // double fin_set;
+	// // int fin_status;
 
-	double current_arm_set = 0;
-	int arm_cmd = 0;
-	double arm_lock_pos = 0;
-	boolean arm_sticky = true;
+	// double current_arm_set = 0;
+	// int arm_cmd = 0;
+	// double arm_lock_pos = 0;
+	// boolean arm_sticky = true;
 
-	boolean home_arm = false;
-	boolean arm_current_limit = true;
+	// boolean home_arm = false;
+	// boolean arm_current_limit = true;
+
+	statecommand lastCommand = new statecommand();
 
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
 
-		double armset = 0;
+
+		statecommand thisround = new statecommand();
+
+
+		thisround.armset = 0;
 
 		if(aTS(0, 3)) {
-			speed = 0;
+			thisround.speed = 0;
 
-			fin_set = 0;
-			fin_status = c.FIN_HOLD;
+			thisround.fin_set = 0;
+			thisround.fin_status = c.FIN_HOLD;
 			
-			armset = chop.remapDegreeToSensor(0);
-			arm_cmd = c.ARM_POSITION;
-			arm_sticky = false;
+			thisround.armset = chop.remapDegreeToSensor(0);
+			thisround.arm_cmd = c.ARM_POSITION;
+			thisround.arm_sticky = false;
 
 
 		} else
 		if (aTS(3, 6.5)) {
 
-			speed = 0.7;
+			thisround.speed = 0.7;
 
-			fin_set = 0;
-			fin_status = c.FIN_HOLD;
+			thisround.fin_set = 0;
+			thisround.fin_status = c.FIN_HOLD;
 			
-			armset = chop.remapDegreeToSensor(0);
-			arm_cmd = c.ARM_POSITION;
-			arm_sticky = false;
+			thisround.armset = chop.remapDegreeToSensor(0);
+			thisround.arm_cmd = c.ARM_POSITION;
+			thisround.arm_sticky = false;
 
 		} else 
 		if (aTS(6.5, 10)) {
 
-			speed = 00;
+			thisround.speed = 00;
 
-			fin_set = .89;
-			fin_status = c.FIN_FAST;
+			thisround.fin_set = .89;
+			thisround.fin_status = c.FIN_FAST;
 			
-			armset = chop.remapDegreeToSensor(0);
-			arm_cmd = c.ARM_POSITION;
-			arm_sticky = false;
+			thisround.armset = chop.remapDegreeToSensor(0);
+			thisround.arm_cmd = c.ARM_POSITION;
+			thisround.arm_sticky = false;
 
 		} else
 		if (aTS(10, 11.5)) {
-			speed = -0.8;
+			thisround.speed = -0.8;
 
-			fin_set = 0;
-			fin_status = c.FIN_FAST;
+			thisround.fin_set = 0;
+			thisround.fin_status = c.FIN_FAST;
 			
-			armset = chop.remapDegreeToSensor(0);
-			arm_cmd = c.ARM_POSITION;
-			arm_sticky = false;
+			thisround.armset = chop.remapDegreeToSensor(0);
+			thisround.arm_cmd = c.ARM_POSITION;
+			thisround.arm_sticky = false;
 
 
 		} else
 		if (aTS(11.5, 15)) {
-			speed = -0.8;
+			thisround.speed = -0.8;
 
-			fin_set = 0;
-			fin_status = c.FIN_FAST;
+			thisround.fin_set = 0;
+			thisround.fin_status = c.FIN_FAST;
 			
-			armset = -9000;
-			arm_cmd = c.ARM_POSITION;
-			arm_sticky = false;
+			thisround.armset = -9000;
+			thisround.arm_cmd = c.ARM_POSITION;
+			thisround.arm_sticky = false;
 
 		} else
 		{
-			speed = 0;
-
-			fin_set = 0;
-			fin_status = c.FIN_FAST;
-			
-			armset = -9000;
-			arm_cmd = c.ARM_POSITION;
-			arm_sticky = false;
+			// keep default psoitions
 		} 
 
+		thisround.assignCmd(vroom, fin, chop, pew);
+		lastCommand = thisround;
 
+		// vroom.velPeriodic(speed, 0, true, false, false, false, 0, 0, -1);
 
-		vroom.velPeriodic(speed, 0, true, false, false, false, 0, 0, -1);
+		// fin.sharkPeriodic(fin_set, fin_status);
 
-		fin.sharkPeriodic(fin_set, fin_status);
-
-		chop.arm_Periodic(armset, arm_cmd, arm_sticky);
+		// chop.arm_Periodic(armset, arm_cmd, arm_sticky);
 	}
 
   /** This function is called once when teleop is enabled. */
@@ -256,6 +256,9 @@ public class Robot extends TimedRobot {
 ////////////// Deaults
 
 	statecommand thisRound = new statecommand();
+
+	boolean vel_ctl = lastCommand.velctl;
+
 
 	thisRound.fin_status = c.FIN_FAST;
 
@@ -326,8 +329,6 @@ public class Robot extends TimedRobot {
 
 
 	/////// ARM //////////
-
-	thisRound.armset = current_arm_set;
 
 	if (gamepad0.getRawButton(b.MU)) { 
 		// up
@@ -401,9 +402,17 @@ public class Robot extends TimedRobot {
 
 	///////// ASSIGNING FUNCTONS
 	
+	if (lastCommand != thisRound) {
+
+		thisRound.assignCmd(vroom, fin, chop, pew);
+
+	}
+	// 	xbox_0.setRumble(RumbleType.kLeftRumble, rmbleDBremap(leftDrive.getSupplyCurrent() / 30));
+	// 	xbox_0.setRumble(RumbleType.kRightRumble, rmbleDBremap(rightDrive.getSupplyCurrent() / 30));
 
 
-	thisRound.assignCmd(vroom, fin, chop, pew);
+	lastCommand = thisRound;
+
 
 
 
@@ -502,13 +511,13 @@ public class Robot extends TimedRobot {
 	}
 
 	private void updateSB_Periodic() {
-		SmartDashboard.putNumber("Forward Speed", speed);
-		SmartDashboard.putNumber("Turn Command", rot);
+		SmartDashboard.putNumber("Forward Speed", lastCommand.speed);
+		SmartDashboard.putNumber("Turn Command", lastCommand.turn);
 		SmartDashboard.putNumber("Velocity Left", leftDrive.getSelectedSensorVelocity(1));
 		SmartDashboard.putNumber("Velocity Right", rightDrive.getSelectedSensorVelocity(0));
 		SmartDashboard.putNumber("Current Left", leftDrive.getStatorCurrent());
 		SmartDashboard.putNumber("Current Right", rightDrive.getStatorCurrent());
-		SmartDashboard.putBoolean("Vel Ctl Mode", vel_ctl);
+		SmartDashboard.putBoolean("Vel Ctl Mode", lastCommand.velctl);
 
 		SmartDashboard.putNumber("Drive Speed Error", leftDrive.getSelectedSensorVelocity(1)+rightDrive.getSelectedSensorVelocity(0));
 		SmartDashboard.putBoolean("Limit mode", gamepad1.getRawButton(1));
@@ -521,7 +530,7 @@ public class Robot extends TimedRobot {
 		SmartDashboard.putNumber("left shark current", left_shark.getStatorCurrent());
 
 
-		SmartDashboard.putNumber("Shark CMD", fin_status);
+		SmartDashboard.putNumber("Shark CMD", lastCommand.fin_status);
 
 		SmartDashboard.putBoolean("fin left rev limit SW", left_shark.isRevLimitSwitchClosed() == 0);
 		SmartDashboard.putBoolean("fin rght rev limit SW", right_shark.isRevLimitSwitchClosed() == 0);
@@ -543,7 +552,7 @@ public class Robot extends TimedRobot {
 		SmartDashboard.putNumber("Arm Current R Angle", chop.Rangle);
 		SmartDashboard.putNumber("Arm Current Angle SU", chop.getCurrentPositionSU());
 
-		SmartDashboard.putNumber("Arm Command", arm_cmd);
+		SmartDashboard.putNumber("Arm Command", lastCommand.arm_cmd);
 		SmartDashboard.putNumber("Arm Status", chop.status);		
 		SmartDashboard.putNumber("Arm L Current", chop.Lcurr);
 		SmartDashboard.putNumber("Arm R Current", chop.Lcurr);
