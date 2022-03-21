@@ -4,43 +4,48 @@ public class Buttons {
     // big list of Button numbers to make code more digestable
 
     //SLOT 0: xbox_0
-    public final int xbox_a = 1;
-    public final int xbox_0_b = 2;
-    public final int xbox_0_x = 3;
-    public final int xbox_0_y = 4;
-    public final int xbox_0_lbumper = 5;
-    public final int xbox_0_rbumper = 6;
-    public final int xbox_0_lmenu = 7;
-    public final int xbox_0_rmenu = 8;
-    public final int xbox_0_l3 = 9;
-    public final int xbox_0_r3 = 10;
+    public int xbox_a = 1;
+    public int xbox_b = 2;
+    public int xbox_x = 3;
+    public int xbox_y = 4;
+    public int xbox_lbumper = 5;
+    public int xbox_rbumper = 6;
+    public int xbox_lmenu = 7;
+    public int xbox_rmenu = 8;
+    public int xbox_l3 = 9;
+    public int xbox_r3 = 10;
 
     //SLOT 1: xbox_1
-    public final int xbox_1_a = 1;
-    public final int xbox_1_b = 2;
-    public final int xbox_1_x = 3;
-    public final int xbox_1_y = 4;
-    public final int xbox_1_lbumper = 5;
-    public final int xbox_1_rbumper = 6;
-    public final int xbox_1_lmenu = 7;
-    public final int xbox_1_rmenu = 8;
-    public final int xbox_1_l3 = 9;
-    public final int xbox_1_r3 = 10;
+    public int xbox_1_a = 1;
+    public int xbox_1_b = 2;
+    public int xbox_1_x = 3;
+    public int xbox_1_y = 4;
+    public int xbox_1_lbumper = 5;
+    public int xbox_1_rbumper = 6;
+    public int xbox_1_lmenu = 7;
+    public int xbox_1_rmenu = 8;
+    public int xbox_1_l3 = 9;
+    public int xbox_1_r3 = 10;
 
     //SLOT 2: gamepad - numbers heavily up for debate
-    public final int FIS = 8;
-    public final int FOS = 4;
-    public final int FOF = 7;
-    public final int FIF = 3;
+    public int FIS = 8;
+    public int FOS = 4;
+    public int FOF = 7;
+    public int FIF = 3;
 
-    public final int MU = 12;
-    public final int MD = 11;
+    public int MU = 12;
+    public int MD = 11;
 
-    public final int homeFins = 6;
+    public int homeFins = 6;
 
-    public final int openArm = 10;
-    public final int scoreArms = 9;
-    public final int humanScore = 1;
+    public int openArm = 10;
+    public int scoreArms = 9;
+
+    // NEED TO UPDATE
+    public int humanScore = 99;
+    public int pew_near = 99;
+    public int pew_far = 99;
+    
 
     public int gamepad_1 = 1;
     public int gamepad_2 = 2;

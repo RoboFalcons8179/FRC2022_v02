@@ -51,6 +51,8 @@ public class Sharkfin {
 
     int scurve = 7;  
 
+    private double shooterPos = 40000;
+
 
     // private TalonFXConfiguration _leftConfig = new TalonFXConfiguration();
     // private TalonFXConfiguration _rightConfig = new TalonFXConfiguration();
@@ -67,8 +69,8 @@ public class Sharkfin {
         masterID = left.getDeviceID();
         
         // Proper inversions for our lift
-        left.setInverted(TalonFXInvertType.CounterClockwise); //false
-        rght.setInverted(TalonFXInvertType.Clockwise); //true
+        left.setInverted(TalonFXInvertType.Clockwise); //false
+        rght.setInverted(TalonFXInvertType.CounterClockwise); //true
     
         rght.setSensorPhase(false);
         left.setSensorPhase(true);
@@ -164,6 +166,10 @@ public class Sharkfin {
         left.setNeutralMode(NeutralMode.Brake);
 
         setpoint = left.getSelectedSensorPosition();
+
+        rght.configForwardSoftLimitEnable(true);
+        left.configForwardSoftLimitEnable(true);
+
     }
 
     public boolean safety = true;
@@ -265,7 +271,7 @@ public class Sharkfin {
             case 3: // Adjusting by the manual control up
                 rght.selectProfileSlot(0, 0);
                 left.selectProfileSlot(0, 0);    
-                setpoint = remap(SAFETY_BLOCK * 1);
+                setpoint = remap(SAFETY_BLOCK * -1);
                 left.set(ControlMode.MotionMagic, setpoint);
                 rght.set(ControlMode.MotionMagic, setpoint);
                 break;
@@ -274,20 +280,20 @@ public class Sharkfin {
             case 4: // Adjusting by the manual control down
                 rght.selectProfileSlot(0, 0);
                 left.selectProfileSlot(0, 0);    
-                setpoint = remap(SAFETY_BLOCK*-1);
+                setpoint = remap(SAFETY_BLOCK*11);
                 left.set(ControlMode.MotionMagic, setpoint);
                 rght.set(ControlMode.MotionMagic, setpoint);
                 break;
 
             case 5: // PID Loop 1: pull very hard
 
-                setpoint = remap(-1);
+                setpoint = remap(1);
                 left.set(ControlMode.MotionMagic, setpoint);
                 rght.set(ControlMode.MotionMagic, setpoint);
                 break;
             
             case 6: // Slow move forward
-                setpoint = remap(1);
+                setpoint = remap(-1);
                 left.set(ControlMode.MotionMagic, setpoint);
                 rght.set(ControlMode.MotionMagic, setpoint);
                 break;
@@ -327,5 +333,19 @@ public class Sharkfin {
 
     private double unmap (double input) {
         return (2 * input / MAX_FIN_LEN) - 1;
+    }
+
+    public void setHighMode(boolean switchMode) {
+
+        if (switchMode) {
+
+            left.configForwardSoftLimitThreshold(shooterPos);
+            rght.configForwardSoftLimitThreshold(shooterPos);
+
+        } else {
+            left.configForwardSoftLimitEnable(false);
+            rght.configForwardSoftLimitEnable(false);
+        }        
+
     }
 }

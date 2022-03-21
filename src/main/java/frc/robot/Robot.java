@@ -6,6 +6,7 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.PowerDistribution;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
@@ -40,7 +41,7 @@ public class Robot extends TimedRobot {
  	private static PowerDistribution PD = new PowerDistribution();
 
 	// SAFETY
-	private static final double MAX_SPEED = 400;
+	private static final double MAX_SPEED = 750;
 	private static final boolean safety = false;
 
 	// PTHER IMPORTANT THINGS
@@ -300,11 +301,11 @@ public class Robot extends TimedRobot {
 
 	if (gamepad0.getRawButton(b.FOF)) {
 		fin_set_point = true;
-		thisRound.fin_set = 1;
+		thisRound.fin_set = -0.97;
 	}
 	if (gamepad0.getRawButton(b.FIF)) {
 		fin_set_point = true;
-		thisRound.fin_set = -.95;
+		thisRound.fin_set = 1;
 	}
 
 
@@ -391,14 +392,23 @@ public class Robot extends TimedRobot {
 
 	// SHOOTER
 
-		thisRound.shootSpeed = setShooterSpeed.getDouble(0.0);
-		thisRound.shootCmd = 1;
+		// thisRound.shootSpeed = setShooterSpeed.getDouble(0.0);
+
+		if (gamepad0.getRawButton(b.pew_near)) {
+			thisRound.shootCmd = 2;
+		}
+		else {
+			thisRound.shootCmd = 0;
+		}
+			
+
 
 	
 	// Switching between the shooting mode and the hanging mode form
 	// swtich on our control board	
 
 	chop.setHighMode(gamepad1.getRawButton(1));
+	fin.setHighMode(gamepad1.getRawButton(1));
 
 	///////// ASSIGNING FUNCTONS
 	
@@ -407,8 +417,8 @@ public class Robot extends TimedRobot {
 		thisRound.assignCmd(vroom, fin, chop, pew);
 
 	}
-	// 	xbox_0.setRumble(RumbleType.kLeftRumble, rmbleDBremap(leftDrive.getSupplyCurrent() / 30));
-	// 	xbox_0.setRumble(RumbleType.kRightRumble, rmbleDBremap(rightDrive.getSupplyCurrent() / 30));
+		xbox_0.setRumble(RumbleType.kLeftRumble, rmbleDBremap(leftDrive.getSupplyCurrent() / 30));
+		xbox_0.setRumble(RumbleType.kRightRumble, rmbleDBremap(rightDrive.getSupplyCurrent() / 30));
 
 
 	lastCommand = thisRound;
@@ -466,6 +476,7 @@ public class Robot extends TimedRobot {
   /** This function is called once when test mode is enabled. */
 
   Orchestra sing = new Orchestra();
+
   @Override
   public void testInit() {
 	sing.addInstrument(left_shark);
