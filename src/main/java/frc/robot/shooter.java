@@ -48,7 +48,7 @@ public class shooter {
     }
     
 
-    public void shoot_per(double shooterSpeed, int shootCmd, int bbarCmd, double bbarForce) {
+    public void shoot_per(double shooterSpeed, int shootCmd) {
 
 
 

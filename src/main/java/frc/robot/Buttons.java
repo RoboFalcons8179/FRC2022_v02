@@ -42,9 +42,10 @@ public class Buttons {
     public int scoreArms = 9;
 
     // NEED TO UPDATE
-    public int humanScore = 99;
-    public int pew_near = 99;
-    public int pew_far = 99;
+    public int pew_near = 2;
+    public int pew_far = 1;
+    public int scoop = 9;
+    public int finsExtend = 5;
     
 
     public int gamepad_1 = 1;

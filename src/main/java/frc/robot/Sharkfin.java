@@ -51,7 +51,7 @@ public class Sharkfin {
 
     int scurve = 7;  
 
-    private double shooterPos = 40000;
+    private double shooterPos = 26000;
 
 
     // private TalonFXConfiguration _leftConfig = new TalonFXConfiguration();
@@ -208,6 +208,8 @@ public class Sharkfin {
                     rght.configMotionCruiseVelocity(normalCruise); 
                     break;
 
+
+
             }
             
             
@@ -298,6 +300,16 @@ public class Sharkfin {
                 rght.set(ControlMode.MotionMagic, setpoint);
                 break;
 
+            case 7: // SCOOP
+                setpoint = 25000;
+                left.set(ControlMode.MotionMagic, setpoint);
+                rght.set(ControlMode.MotionMagic, setpoint);
+                break;
+            case 8:
+                setpoint = remap(-0.97);
+                left.set(ControlMode.MotionMagic, setpoint);
+                rght.set(ControlMode.MotionMagic, setpoint);
+                break;
             case -1: // Home
                 left.set(ControlMode.PercentOutput, homePWM);
                 rght.set(ControlMode.PercentOutput, homePWM);

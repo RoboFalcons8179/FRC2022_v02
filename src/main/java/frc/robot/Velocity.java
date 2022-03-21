@@ -218,7 +218,8 @@ public class Velocity {
 		boolean velctl, boolean isQuickTurn, 
 		boolean RL, boolean RR, 
 		double maxPowerF, double maxPowerR,
-		double pov) {
+		double pov,
+		double lime_tx, boolean lime) {
 
 
 		double cheesyLeft;

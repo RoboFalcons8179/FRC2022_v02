@@ -18,6 +18,8 @@ public class statecommand {
     public double  maxPowerF;
     public double  maxPowerR;
     public double pov;
+    public double lime_tx;
+    public boolean lime_enable;
      
 
 
@@ -60,9 +62,7 @@ public class statecommand {
         arm_sticky = true;
 
         shootSpeed = 0;
-        shootCmd = 0;
-        bb_cmd = 0;
-        bb_options = 0;
+        shootCmd = c.SHOOT_HOLD;
     }
 
     public void assignCmd (
@@ -72,10 +72,12 @@ public class statecommand {
         shooter bang
     ) {
        
-        vroom.velPeriodic(speed, turn, velctl, isQuickTurn, RL, RR, maxPowerF, maxPowerR, pov);
+        vroom.velPeriodic(speed, turn, velctl, isQuickTurn, RL, RR, 
+            maxPowerF, maxPowerR, pov,
+            lime_tx, lime_enable);
         fins.sharkPeriodic(fin_set, fin_status);
         arms.arm_Periodic(armset, arm_cmd, arm_sticky);
-        bang.shoot_per(shootSpeed, shootCmd, bb_cmd, bb_options);
+        bang.shoot_per(shootSpeed, shootCmd);
 
     }
 

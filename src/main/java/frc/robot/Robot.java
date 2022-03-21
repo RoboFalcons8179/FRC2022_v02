@@ -260,7 +260,6 @@ public class Robot extends TimedRobot {
 
 	boolean vel_ctl = lastCommand.velctl;
 
-
 	thisRound.fin_status = c.FIN_FAST;
 
 	boolean fin_set_point = false;
@@ -297,7 +296,8 @@ public class Robot extends TimedRobot {
 	// boolean fin_adj_down = (xbox_1.getPOV() == 180);
 	boolean fin_pull = (gamepad0.getRawButton(b.FIS));
 	boolean fin_push = (gamepad0.getRawButton(b.FOS));
-	boolean fin_home = gamepad0.getRawButton(b.homeFins);
+	boolean fin_scoop = gamepad0.getRawButton(b.scoop);
+	boolean fin_extend = gamepad0.getRawButton(b.finsExtend);
 
 	if (gamepad0.getRawButton(b.FOF)) {
 		fin_set_point = true;
@@ -316,15 +316,19 @@ public class Robot extends TimedRobot {
 	if (fin_set_point) {
 		thisRound.fin_status = c.FIN_FAST;
 	} else 
-	if (fin_home){
-		thisRound.fin_status = c.HOME;
-	} else 
 	if (fin_pull){
 		thisRound.fin_status = c.FIN_PULLSLOW;
 	} else 
 	if (fin_push){
 		thisRound.fin_status = c.FIN_PUSHSLOW;
-	} else {
+	}else
+	if (fin_scoop) {
+		thisRound.fin_status = c.FIN_SCOOP;
+	}else
+	if (fin_extend) {
+		thisRound.fin_status = c.FIN_EXTEND;
+	} else 
+	{
 		thisRound.fin_status = c.FIN_HOLD;
 	}
 
@@ -368,19 +372,20 @@ public class Robot extends TimedRobot {
 		thisRound.arm_cmd = c.ARM_POSITION;
 		thisRound.arm_sticky = false;
 	} else
-	if (gamepad0.getRawButton(b.scoreArms)) {
-		// raise up to score
-		thisRound.armset = 60000;
-		thisRound.arm_cmd = c.ARM_POSITION;
-		thisRound.arm_sticky = false;
-	} else
-	if (gamepad0.getRawButton(b.humanScore)) {
-		// for human to roll balls
-		thisRound.armset = 46000;
-		thisRound.arm_cmd = c.ARM_POSITION;
-		thisRound.arm_sticky = false;
-	}
-	else
+
+	/// Removing score arms - not used any more.
+	// if (gamepad0.getRawButton(b.scoreArms)) {
+	// 	// raise up to score
+	// 	thisRound.armset = 60000;
+	// 	thisRound.arm_cmd = c.ARM_POSITION;
+	// 	thisRound.arm_sticky = false;
+	// } else
+	// if (gamepad0.getRawButton(b.humanScore)) {
+	// 	// for human to roll balls
+	// 	thisRound.armset = 46000;
+	// 	thisRound.arm_cmd = c.ARM_POSITION;
+	// 	thisRound.arm_sticky = false;
+	// }else
 	 { // Default Hold, command 1 or 10
 		
 		thisRound.arm_cmd = c.ARM_FLOATPOS;
@@ -475,17 +480,9 @@ public class Robot extends TimedRobot {
 
   /** This function is called once when test mode is enabled. */
 
-  Orchestra sing = new Orchestra();
 
   @Override
   public void testInit() {
-	sing.addInstrument(left_shark);
-	sing.addInstrument(right_shark);
-	sing.addInstrument(left_chop);
-	sing.addInstrument(right_chop);
-
-	sing.loadMusic("src\\main\\java\\frc\\robot\\take5.chrp");
-	sing.play();
 
 
 

@@ -18,6 +18,9 @@ public class commands {
     public final int FIN_ADJBACK = 4;
     public final int FIN_PULLSLOW = 5;
     public final int FIN_PUSHSLOW = 6;
+    public final int FIN_SCOOP = 7;
+    public final int FIN_EXTEND = 8;
+
     public final int FIN_OFF = 0;
 
     public final int SHOOT_HOLD = 0;
