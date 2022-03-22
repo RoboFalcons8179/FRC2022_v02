@@ -54,6 +54,9 @@ public class statecommand {
         maxPowerR = 0;
         pov = -1;
 
+        lime_tx = 0;
+        lime_enable = false;
+
         fin_set = 0;
         fin_status = c.FIN_HOLD;
 

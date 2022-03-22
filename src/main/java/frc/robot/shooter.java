@@ -12,8 +12,8 @@ public class shooter {
     // private WPI_VictorSPX bb;
 
     // SHOOTER SETPOINTS
-    private double near = 50000;
-    private double far = 43000;
+    private double near = 43000;
+    private double far = 50000;
     private double eject = 6000;
 
 

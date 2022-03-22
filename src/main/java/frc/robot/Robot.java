@@ -400,7 +400,13 @@ public class Robot extends TimedRobot {
 		// thisRound.shootSpeed = setShooterSpeed.getDouble(0.0);
 
 		if (gamepad0.getRawButton(b.pew_near)) {
-			thisRound.shootCmd = 2;
+			thisRound.shootCmd = c.SHOOT_NEAR;
+		} else 
+		if (gamepad0.getRawButton(b.pew_far)) {
+			thisRound.shootCmd = c.SHOOT_FAR;
+		} else
+		if (gamepad0.getRawButton(b.pew_ej)) {
+			thisRound.shootCmd = c.SHOOT_EJECT;
 		}
 		else {
 			thisRound.shootCmd = 0;

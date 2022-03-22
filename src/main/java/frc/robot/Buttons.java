@@ -44,6 +44,9 @@ public class Buttons {
     // NEED TO UPDATE
     public int pew_near = 2;
     public int pew_far = 1;
+    public int pew_ej = 6;
+
+
     public int scoop = 9;
     public int finsExtend = 5;
     
