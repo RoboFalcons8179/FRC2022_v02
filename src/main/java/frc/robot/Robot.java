@@ -41,7 +41,7 @@ public class Robot extends TimedRobot {
  	private static PowerDistribution PD = new PowerDistribution();
 
 	// SAFETY
-	private static final double MAX_SPEED = 750;
+	private static final double MAX_SPEED = 550;
 	private static final boolean safety = false;
 
 	// PTHER IMPORTANT THINGS
@@ -264,6 +264,8 @@ public class Robot extends TimedRobot {
 
 	boolean fin_set_point = false;
 
+	boolean inShootMode = gamepad1.getRawButton(1);
+
 
 //// Smart Dashboard
 	// speed = setSpeedNetwork.getDouble(1.0);
@@ -287,8 +289,8 @@ public class Robot extends TimedRobot {
 	thisRound.pov = xbox_0.getPOV();
 
 	// Turbo
-	thisRound.maxPowerF = gamepad1.getRawButton(1) ? xbox_0.getRawAxis(2) : 0;
-	// double MaxPowerRev = gamepad1.getRawButton(1) ? xbox_0.getRawAxis(3) * 0.6 : 0;
+	thisRound.maxPowerF = inShootMode ? xbox_0.getRawAxis(2) : 0;
+	// double MaxPowerRev = inShootMode ? xbox_0.getRawAxis(3) * 0.6 : 0;
 
 ///// FINS
 	// Buttons
@@ -312,24 +314,34 @@ public class Robot extends TimedRobot {
 
 ///////////////////// Turning booleans into system commands
 
+	if(!inShootMode) {
+		if (fin_set_point) {
+			thisRound.fin_status = c.FIN_FAST;
+		} else 
+		if (fin_pull){
+			thisRound.fin_status = c.FIN_PULLSLOW;
+		} else 
+		if (fin_push){
+			thisRound.fin_status = c.FIN_PUSHSLOW;
+		}else
+		if (fin_scoop) {
+			thisRound.fin_status = c.FIN_SCOOP;
+		}else
+		if (fin_extend) {
+			thisRound.fin_status = c.FIN_EXTEND;
+		} else 
+		{
+			thisRound.fin_status = c.FIN_HOLD;
+		}
+	}
+	else {
 
-	if (fin_set_point) {
-		thisRound.fin_status = c.FIN_FAST;
-	} else 
-	if (fin_pull){
-		thisRound.fin_status = c.FIN_PULLSLOW;
-	} else 
-	if (fin_push){
-		thisRound.fin_status = c.FIN_PUSHSLOW;
-	}else
-	if (fin_scoop) {
-		thisRound.fin_status = c.FIN_SCOOP;
-	}else
-	if (fin_extend) {
-		thisRound.fin_status = c.FIN_EXTEND;
-	} else 
-	{
-		thisRound.fin_status = c.FIN_HOLD;
+		if(gamepad0.getRawButton(b.scoop)) {
+			thisRound.fin_status = c.FIN_SCOOP;
+		} else {
+			thisRound.fin_status = c.FIN_EXTEND;
+		}
+
 	}
 
 
@@ -351,7 +363,7 @@ public class Robot extends TimedRobot {
 		thisRound.arm_sticky = true;
 
 	} else	
-	if (xbox_0.getRawAxis(2) > 0.2 && ! gamepad1.getRawButton(1)){
+	if (xbox_0.getRawAxis(2) > 0.2 && ! inShootMode){
 		// High mode Swing Down
 		thisRound.armset = xbox_0.getRawAxis(2) * -1;
 		thisRound.arm_cmd = c.ARM_OPENLOOP;
@@ -359,7 +371,7 @@ public class Robot extends TimedRobot {
 
 
 	} else
-	if (xbox_0.getRawAxis(3) > 0.2 && ! gamepad1.getRawButton(1)) {
+	if (xbox_0.getRawAxis(3) > 0.2 && ! inShootMode) {
 		// High mode swing up
 		
 		thisRound.armset = xbox_0.getRawAxis(3);
@@ -418,8 +430,8 @@ public class Robot extends TimedRobot {
 	// Switching between the shooting mode and the hanging mode form
 	// swtich on our control board	
 
-	chop.setHighMode(gamepad1.getRawButton(1));
-	fin.setHighMode(gamepad1.getRawButton(1));
+	chop.setHighMode(inShootMode);
+	fin.setHighMode(inShootMode);
 
 	///////// ASSIGNING FUNCTONS
 	
