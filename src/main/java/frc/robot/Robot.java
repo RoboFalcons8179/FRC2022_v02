@@ -133,6 +133,7 @@ public class Robot extends TimedRobot {
 	vroom.vel_initalize();
 	fin.shark_initial();
 	chop.arm_init();
+	pew.init();
 
   }
 
@@ -164,69 +165,36 @@ public class Robot extends TimedRobot {
 
 
 		thisround.armset = 0;
-
-		if(aTS(0, 3)) {
-			thisround.speed = 0;
-
-			thisround.fin_set = 0;
-			thisround.fin_status = c.FIN_HOLD;
+		//auton 1
+/*		
+		if (aTS(0, 3.5)) {
+			thisround.speed = -0.7;
+		}
+		if (aTS(3.5, 5)) {
+			thisround.shootCmd = c.SHOOT_NEAR;
+		}
+		if (aTS(5, 7)) {
+			thisround.shootCmd = c.SHOOT_NEAR;
 			
-			thisround.armset = chop.remapDegreeToSensor(0);
-			thisround.arm_cmd = c.ARM_POSITION;
-			thisround.arm_sticky = false;
+			thisround.fin_status = c.FIN_SCOOP;
+		}
+		*/
+		//auton 2
 
-
-		} else
-		if (aTS(3, 6.5)) {
-
-			thisround.speed = 0.7;
-
-			thisround.fin_set = 0;
-			thisround.fin_status = c.FIN_HOLD;
+		if (aTS(0, 3.5)) {
+			thisround.speed = -0.7;
+		}
+		if (aTS(3.5, 5)) {
+			thisround.shootCmd = c.SHOOT_NEAR;
+		}
+		if (aTS(5, 7)) {
+			thisround.shootCmd = c.SHOOT_NEAR;
 			
-			thisround.armset = chop.remapDegreeToSensor(0);
-			thisround.arm_cmd = c.ARM_POSITION;
-			thisround.arm_sticky = false;
-
-		} else 
-		if (aTS(6.5, 10)) {
-
-			thisround.speed = 00;
-
-			thisround.fin_set = .89;
-			thisround.fin_status = c.FIN_FAST;
-			
-			thisround.armset = chop.remapDegreeToSensor(0);
-			thisround.arm_cmd = c.ARM_POSITION;
-			thisround.arm_sticky = false;
-
-		} else
-		if (aTS(10, 11.5)) {
-			thisround.speed = -0.8;
-
-			thisround.fin_set = 0;
-			thisround.fin_status = c.FIN_FAST;
-			
-			thisround.armset = chop.remapDegreeToSensor(0);
-			thisround.arm_cmd = c.ARM_POSITION;
-			thisround.arm_sticky = false;
+			thisround.fin_status = c.FIN_SCOOP;
+		}
 
 
-		} else
-		if (aTS(11.5, 15)) {
-			thisround.speed = -0.8;
 
-			thisround.fin_set = 0;
-			thisround.fin_status = c.FIN_FAST;
-			
-			thisround.armset = -9000;
-			thisround.arm_cmd = c.ARM_POSITION;
-			thisround.arm_sticky = false;
-
-		} else
-		{
-			// keep default psoitions
-		} 
 
 		thisround.assignCmd(vroom, fin, chop, pew);
 		lastCommand = thisround;
@@ -590,3 +558,69 @@ public class Robot extends TimedRobot {
 
 	}
 }
+
+
+
+
+// if(aTS(0, 3)) {
+// 	thisround.speed = 0;
+
+// 	thisround.fin_set = 0;
+// 	thisround.fin_status = c.FIN_HOLD;
+	
+// 	thisround.armset = chop.remapDegreeToSensor(0);
+// 	thisround.arm_cmd = c.ARM_POSITION;
+// 	thisround.arm_sticky = false;
+
+
+// } else
+// if (aTS(3, 6.5)) {
+
+// 	thisround.speed = 0.7;
+
+// 	thisround.fin_set = 0;
+// 	thisround.fin_status = c.FIN_HOLD;
+	
+// 	thisround.armset = chop.remapDegreeToSensor(0);
+// 	thisround.arm_cmd = c.ARM_POSITION;
+// 	thisround.arm_sticky = false;
+
+// } else 
+// if (aTS(6.5, 10)) {
+
+// 	thisround.speed = 00;
+
+// 	thisround.fin_set = .89;
+// 	thisround.fin_status = c.FIN_FAST;
+	
+// 	thisround.armset = chop.remapDegreeToSensor(0);
+// 	thisround.arm_cmd = c.ARM_POSITION;
+// 	thisround.arm_sticky = false;
+
+// } else
+// if (aTS(10, 11.5)) {
+// 	thisround.speed = -0.8;
+
+// 	thisround.fin_set = 0;
+// 	thisround.fin_status = c.FIN_FAST;
+	
+// 	thisround.armset = chop.remapDegreeToSensor(0);
+// 	thisround.arm_cmd = c.ARM_POSITION;
+// 	thisround.arm_sticky = false;
+
+
+// } else
+// if (aTS(11.5, 15)) {
+// 	thisround.speed = -0.8;
+
+// 	thisround.fin_set = 0;
+// 	thisround.fin_status = c.FIN_FAST;
+	
+// 	thisround.armset = -9000;
+// 	thisround.arm_cmd = c.ARM_POSITION;
+// 	thisround.arm_sticky = false;
+
+// } else
+// {
+// 	// keep default psoitions
+// } 

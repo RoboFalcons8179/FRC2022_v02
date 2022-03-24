@@ -248,6 +248,16 @@ public class Sharkfin {
                 rght.configMotionSCurveStrength(scurve);
                 left.configMotionSCurveStrength(scurve);
                 break;
+
+            case 7: 
+                rght.selectProfileSlot(0, 0);
+                left.selectProfileSlot(0, 0);
+
+                left.configMotionAcceleration(normalAccel);
+                left.configMotionCruiseVelocity(normalCruise);
+                rght.configMotionAcceleration(normalAccel);
+                rght.configMotionCruiseVelocity(normalCruise); 
+                break;
             }
             
 
@@ -282,7 +292,7 @@ public class Sharkfin {
             case 4: // Adjusting by the manual control down
                 rght.selectProfileSlot(0, 0);
                 left.selectProfileSlot(0, 0);    
-                setpoint = remap(SAFETY_BLOCK*11);
+                setpoint = remap(SAFETY_BLOCK*1);
                 left.set(ControlMode.MotionMagic, setpoint);
                 rght.set(ControlMode.MotionMagic, setpoint);
                 break;

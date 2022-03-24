@@ -12,9 +12,9 @@ public class shooter {
     // private WPI_VictorSPX bb;
 
     // SHOOTER SETPOINTS
-    private double near = 43000;
-    private double far = 50000;
-    private double eject = 6000;
+    private double near = 48000;
+    private double far = 51000;
+    private double eject = 32000;
 
 
     shooter(WPI_TalonSRX shooter_in) {

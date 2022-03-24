@@ -190,6 +190,12 @@ public class Velocity {
 
 		_leftMaster.selectProfileSlot(Constants.kSlot_Velocit, Constants.PID_PRIMARY);
 
+		
+        _leftMaster.configClosedloopRamp(0.15);
+		_rightMaster.configClosedloopRamp(0.15);
+		_leftFollow.configClosedloopRamp(0.15);
+		_rightFollow.configClosedloopRamp(0.15);
+
 
 		// // Untested Current Limiting
 		// _leftMaster.configContinuousCurrentLimit(40, 20);
