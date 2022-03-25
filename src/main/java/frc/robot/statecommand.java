@@ -18,6 +18,7 @@ public class statecommand {
     public double  maxPowerF;
     public double  maxPowerR;
     public double pov;
+    
     public double lime_tx;
     public boolean lime_enable;
      

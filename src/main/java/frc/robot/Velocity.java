@@ -40,6 +40,11 @@ public class Velocity {
     public boolean _leftFollowSame = true;
     public boolean _rightFollowSame = true;
 
+	// Limelight Constants
+
+	private final double center = -1;
+	private final double LIME_E_ZONE = 2;
+	private final double k_lime_turn = 170;;
 
 
     public double MAXSPEED;
@@ -263,8 +268,12 @@ public class Velocity {
 
 		}
 
+		if (lime) {
+			double lime_turn = findLimeTurn(lime_tx);
+			_rightMaster.set(ControlMode.Velocity, -1 * lime_turn); //, DemandType.AuxPID, turn
+			_leftMaster.set(ControlMode.Velocity, lime_turn);	
 
-		if (RL || pov == 270) {
+		} else if (RL || pov == 270) {
 			// Rotate left
 			_rightMaster.set(ControlMode.Velocity, +170); //, DemandType.AuxPID, turn
 			_leftMaster.set(ControlMode.Velocity, -170);	
@@ -273,7 +282,7 @@ public class Velocity {
 			// Rotate right
 			_rightMaster.set(ControlMode.Velocity, -170); //, DemandType.AuxPID, turn
 			_leftMaster.set(ControlMode.Velocity, +170);			
-		}else if (pov == 0) {
+		} else if (pov == 0) {
 			_rightMaster.set(ControlMode.Velocity, +170); //, DemandType.AuxPID, turn
 			_leftMaster.set(ControlMode.Velocity, +170);		
 		} else if (pov == 180) {
@@ -308,6 +317,21 @@ public class Velocity {
 
 		System.out.println("[Integrated Sensors] All sensors are zeroed.\n");
     }
+
+	public double findLimeTurn(double tx) {
+
+		if ( tx < (center - LIME_E_ZONE) ) {
+			// turn right
+			return (-1 * k_lime_turn);
+		} else if ( tx > (center + LIME_E_ZONE) ) {
+			// turn left
+			return k_lime_turn;
+		} else {
+			// freeze
+			return 0;
+		}
+
+	}
     
 
 

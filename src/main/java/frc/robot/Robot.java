@@ -94,8 +94,8 @@ public class Robot extends TimedRobot {
 
 	NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
 	NetworkTableEntry tx = table.getEntry("tx");
-	NetworkTableEntry ty = table.getEntry("ty");
-	NetworkTableEntry ta = table.getEntry("ta");
+
+	double limelighttx;
 
 	
 	@Override
@@ -117,9 +117,7 @@ public class Robot extends TimedRobot {
 	updateSB_Periodic();
 
 	// read values periodically
-	// double x = tx.getDouble(0.0);
-	// double y = ty.getDouble(0.0);
-	// double area = ta.getDouble(0.0);
+	limelighttx = tx.getDouble(0.0);
 
   }
 
@@ -163,6 +161,7 @@ public class Robot extends TimedRobot {
 
 		statecommand thisround = new statecommand();
 
+		thisround.lime_tx = limelighttx;
 
 		thisround.armset = 0;
 		//auton 1
@@ -253,8 +252,12 @@ public class Robot extends TimedRobot {
 	// pivot & others
 	thisRound.RL = xbox_0.getRawButton(5); 
 	thisRound.RR = xbox_0.getRawButton(6);
-	thisRound.isQuickTurn = xbox_0.getRawButtonPressed(4);
+	thisRound.isQuickTurn = xbox_0.getRawButtonPressed(b.xbox_y);
 	thisRound.pov = xbox_0.getPOV();
+
+	// limelight
+	thisRound.lime_enable = xbox_0.getRawButton(b.xbox_x);
+	thisRound.lime_tx = limelighttx;
 
 	// Turbo
 	thisRound.maxPowerF = inShootMode ? xbox_0.getRawAxis(2) : 0;
@@ -515,8 +518,9 @@ public class Robot extends TimedRobot {
 
 		SmartDashboard.putNumber("Drive Speed Error", leftDrive.getSelectedSensorVelocity(1)+rightDrive.getSelectedSensorVelocity(0));
 		SmartDashboard.putBoolean("Limit mode", gamepad1.getRawButton(1));
-		
-		
+		SmartDashboard.putBoolean("Lime Enble", xbox_0.getRawButton(b.xbox_x));
+		SmartDashboard.putNumber("Lime CMD", vroom.findLimeTurn(limelighttx));
+
 		
 		SmartDashboard.putNumber("right shark position", right_shark.getSelectedSensorPosition(0));
 		SmartDashboard.putNumber("left shark position", left_shark.getSelectedSensorPosition(0));
