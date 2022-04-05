@@ -89,7 +89,8 @@ public class Robot extends TimedRobot {
 	private NetworkTableEntry setFinsNetwork = data.add("SET FIN POSITION",0).getEntry();
 	private NetworkTableEntry setArmCurrentSW = data.add("SET ARM CURRENT LIMS",true).getEntry();
 	private NetworkTableEntry setShooterSpeed = data.add("SETSHOOTER SPEED",0).getEntry();
-
+	private NetworkTableEntry setAutonDelay = data.add("AUTON DELAY",0).getEntry();
+	private NetworkTableEntry limeCorrection = data.add("AUTON LIME FOLLOW",true).getEntry();
 	// LIMELIGHT
 
 	NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
@@ -121,6 +122,8 @@ public class Robot extends TimedRobot {
 
   }
 
+  double delay = 0;
+  boolean limecorrection = true;
 
   @Override
   public void autonomousInit() {
@@ -132,6 +135,13 @@ public class Robot extends TimedRobot {
 	fin.shark_initial();
 	chop.arm_init();
 	pew.init();
+
+	delay = setAutonDelay.getDouble(0);
+	limecorrection = limeCorrection.getBoolean(true);
+
+	if (delay > 6.1 || delay < 0) {
+		delay = 0;
+	}
 
   }
 
@@ -162,35 +172,29 @@ public class Robot extends TimedRobot {
 		statecommand thisround = new statecommand();
 
 		thisround.lime_tx = limelighttx;
+		
+		thisround.fin_status = c.FIN_EXTEND;
+		thisround.fin_set = -0.97;
 
 		thisround.armset = 0;
-		//auton 1
-/*		
-		if (aTS(0, 3.5)) {
-			thisround.speed = -0.7;
-		}
-		if (aTS(3.5, 5)) {
-			thisround.shootCmd = c.SHOOT_NEAR;
-		}
-		if (aTS(5, 7)) {
-			thisround.shootCmd = c.SHOOT_NEAR;
-			
-			thisround.fin_status = c.FIN_SCOOP;
-		}
-		*/
+
 		//auton 2
 
-		if (aTS(0, 3.5)) {
+		if (aTS(delay + 0, delay + 4.5)) {
 			thisround.speed = -0.7;
 		}
-		if (aTS(3.5, 5)) {
+		if (aTS(delay + 4.5, delay + 6)) {
 			thisround.shootCmd = c.SHOOT_NEAR;
+
+				thisround.lime_enable = true;
+
+
 		}
-		if (aTS(5, 7)) {
+		if (aTS(delay + 6, delay + 7)) {
 			thisround.shootCmd = c.SHOOT_NEAR;
 			
 			thisround.fin_status = c.FIN_SCOOP;
-		}
+		} 
 
 
 
@@ -212,6 +216,7 @@ public class Robot extends TimedRobot {
 	vroom.vel_initalize();
 	fin.shark_initial();
 	chop.arm_init();
+	pew.init();
 
   }
 
@@ -274,7 +279,7 @@ public class Robot extends TimedRobot {
 
 	if (gamepad0.getRawButton(b.FOF)) {
 		fin_set_point = true;
-		thisRound.fin_set = -0.97;
+		thisRound.fin_set = -0.99;
 	}
 	if (gamepad0.getRawButton(b.FIF)) {
 		fin_set_point = true;

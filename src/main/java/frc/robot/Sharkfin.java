@@ -43,13 +43,13 @@ public class Sharkfin {
     public double setpoint;
     private double SAFETY_BLOCK = 0.97;
 
-    int normalAccel = 40000;
-    int normalCruise = 15000;
+    int normalAccel = 40000; // was 40000
+    int normalCruise = 13500; // was 15000
 
-    int pullCruise = 2000;
-    int pullAccel = 4000;
+    int pullCruise = 1900; // was 2000
+    int pullAccel = 3600; // was 4000
 
-    int scurve = 7;  
+    int scurve = 8;  
 
     private double shooterPos = 35000;
 
@@ -144,6 +144,9 @@ public class Sharkfin {
 
         rght.setSelectedSensorPosition(0);
         left.setSelectedSensorPosition(0);
+
+        left.configForwardSoftLimitThreshold(shooterPos);
+        rght.configForwardSoftLimitThreshold(shooterPos);
 
         // Set max rate for sharkfins. Prevents hopping around.
 
@@ -249,15 +252,15 @@ public class Sharkfin {
                 left.configMotionSCurveStrength(scurve);
                 break;
 
-            case 7: 
-                rght.selectProfileSlot(0, 0);
-                left.selectProfileSlot(0, 0);
+            // case 7: 
+            //     rght.selectProfileSlot(0, 0);
+            //     left.selectProfileSlot(0, 0);
 
-                left.configMotionAcceleration(normalAccel);
-                left.configMotionCruiseVelocity(normalCruise);
-                rght.configMotionAcceleration(normalAccel);
-                rght.configMotionCruiseVelocity(normalCruise); 
-                break;
+            //     left.configMotionAcceleration(normalAccel);
+            //     left.configMotionCruiseVelocity(normalCruise);
+            //     rght.configMotionAcceleration(normalAccel);
+            //     rght.configMotionCruiseVelocity(normalCruise); 
+            //     break;
             }
             
 
